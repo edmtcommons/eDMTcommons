@@ -1,6 +1,9 @@
 {
   "variant": "compact",
   "subvariant": "split",
+  "subvariantOptions": {
+    "split": "swap"
+  },
   "appearance": "light",
   "theme": {
     "colorSchemes": {

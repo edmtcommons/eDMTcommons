@@ -11,7 +11,7 @@ import { erc20Abi } from 'viem';
 import { EDMT_TOKEN_ADDRESS, TOKEN_NAME, GALLERY_CONFIG } from '@/lib/constants';
 import { lifiConfig } from '@/lib/lifi-config';
 
-// Dynamically import Li.Fi Widget to avoid SSR issues
+// Dynamically import Li.Fi Widget and wallet management to avoid SSR issues
 const LiFiWidget = dynamic(
   () => import('@lifi/widget').then((mod) => mod.LiFiWidget),
   {
@@ -20,10 +20,8 @@ const LiFiWidget = dynamic(
 );
 
 export default function SwapPage() {
-  const { isConnected } = useAccount();
+  const { isConnected, address, chain } = useAccount();
   const router = useRouter();
-
-  const { address } = useAccount();
 
   const { data: balance } = useReadContract({
     address: EDMT_TOKEN_ADDRESS,
@@ -154,6 +152,7 @@ export default function SwapPage() {
                 integrator={`${TOKEN_NAME}-Gallery`}
                 config={{
                   ...lifiConfig,
+                  fromChain: chain?.id || GALLERY_CONFIG.chainId,
                   toChain: GALLERY_CONFIG.chainId,
                   toToken: GALLERY_CONFIG.tokenAddress,
                 } as any}
