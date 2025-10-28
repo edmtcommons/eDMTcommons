@@ -7,6 +7,7 @@ import { erc20Abi } from 'viem';
 import { EDMT_TOKEN_ADDRESS, TOKEN_NAME } from '@/lib/constants';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export function Header() {
   const { address, isConnected } = useAccount();
@@ -49,31 +50,14 @@ export function Header() {
     <header className="w-full px-6 py-4 flex items-center justify-between bg-transparent z-20 relative">
       {/* Logo */}
       <Link href="/swap" className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M10 5C7.5 5 5.5 7 5.5 9.5C5.5 12 7.5 14 10 14C12.5 14 14.5 12 14.5 9.5C14.5 7 12.5 5 10 5ZM10 13C8.35 13 7 11.65 7 10C7 8.35 8.35 7 10 7C11.65 7 13 8.35 13 10C13 11.65 11.65 13 10 13Z"
-              fill="currentColor"
-              className="text-primary"
-            />
-            <rect
-              x="9"
-              y="11"
-              width="2"
-              height="4"
-              rx="0.5"
-              fill="currentColor"
-              className="text-primary"
-            />
-          </svg>
-        </div>
-        <span className="text-white text-xl font-medium">{TOKEN_NAME}</span>
+        <Image
+          src="/assets/logo.svg"
+          alt={TOKEN_NAME}
+          width={200}
+          height={53}
+          className="w-[200px] h-auto"
+          priority
+        />
       </Link>
 
       {/* Navigation */}
