@@ -147,19 +147,21 @@ export default function SwapPage() {
             <h2 className="text-2xl font-semibold text-primary mb-6">
               Swap {TOKEN_NAME}
             </h2>
-            <div className="widget-container">
+            <div className="widget-container lifi-widget-hide-wallet">
               <LiFiWidget
                 integrator={`${TOKEN_NAME}-Gallery`}
                 config={{
                   ...lifiConfig,
+                  // Initialize form values - eDMT as destination token
                   fromChain: chain?.id || GALLERY_CONFIG.chainId,
                   toChain: GALLERY_CONFIG.chainId,
                   toToken: GALLERY_CONFIG.tokenAddress,
+                  // Use external wallet management (RainbowKit)
+                  walletConfig: {
+                    showWalletMenu: false,
+                  },
                 } as any}
               />
-              <p className="text-primary/60 text-xs mt-4 text-center">
-                Powered by LI.FI
-              </p>
             </div>
           </div>
         </div>

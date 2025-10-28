@@ -47,4 +47,12 @@ body {
   background: #7a4a68;
 }
 
+/* Hide LiFi wallet connection UI - we use RainbowKit */
+.lifi-widget-hide-wallet button[aria-label*="wallet" i],
+.lifi-widget-hide-wallet button[aria-label*="connect" i],
+.lifi-widget-hide-wallet [data-testid*="wallet" i],
+.lifi-widget-hide-wallet [class*="WalletButton"],
+.lifi-widget-hide-wallet [class*="wallet-button"] {
+  display: none !important;
+}
 
