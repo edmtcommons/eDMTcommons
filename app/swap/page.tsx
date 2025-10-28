@@ -8,7 +8,8 @@ import dynamic from 'next/dynamic';
 import { useReadContract } from 'wagmi';
 import { formatUnits } from 'viem';
 import { erc20Abi } from 'viem';
-import { EDMT_TOKEN_ADDRESS, TOKEN_NAME } from '@/lib/constants';
+import { EDMT_TOKEN_ADDRESS, TOKEN_NAME, GALLERY_CONFIG } from '@/lib/constants';
+import { lifiConfig } from '@/lib/lifi-config';
 
 // Dynamically import Li.Fi Widget to avoid SSR issues
 const LiFiWidget = dynamic(
@@ -152,48 +153,9 @@ export default function SwapPage() {
               <LiFiWidget
                 integrator={`${TOKEN_NAME}-Gallery`}
                 config={{
-                  variant: 'compact' as any,
-                  subvariant: 'split' as any,
-                  appearance: 'light' as any,
-                  theme: {
-                    // @ts-ignore - Li.Fi widget theme config
-                    colorSchemes: {
-                      light: {
-                        palette: {
-                          primary: {
-                            main: '#5c314c',
-                          },
-                          secondary: {
-                            main: '#5c314c',
-                          },
-                          background: {
-                            default: '#e9e6d6',
-                            paper: '#e9e6d6',
-                          },
-                          grey: {
-                            200: '#bfbcad',
-                            300: '#bfbcad',
-                          },
-                          text: {
-                            primary: '#123138',
-                          },
-                        },
-                      },
-                    },
-                    typography: {
-                      fontFamily: 'Roboto Mono, monospace',
-                    },
-                    container: {
-                      boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.08)',
-                      borderRadius: '16px',
-                    },
-                    shape: {
-                      borderRadiusSecondary: 8,
-                      borderRadius: 8,
-                    },
-                  },
-                  toChain: 8453, // Base chain
-                  toToken: '0x7db6dfe35158bab10039648ce0e0e119d0ec21ec', // Token address
+                  ...lifiConfig,
+                  toChain: GALLERY_CONFIG.chainId,
+                  toToken: GALLERY_CONFIG.tokenAddress,
                 } as any}
               />
               <p className="text-primary/60 text-xs mt-4 text-center">

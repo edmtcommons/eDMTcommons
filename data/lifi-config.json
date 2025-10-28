@@ -1,0 +1,52 @@
+{
+  "variant": "compact",
+  "subvariant": "split",
+  "appearance": "light",
+  "theme": {
+    "colorSchemes": {
+      "light": {
+        "palette": {
+          "primary": {
+            "main": "#5c314c"
+          },
+          "secondary": {
+            "main": "#5c314c"
+          },
+          "background": {
+            "default": "#e9e6d6",
+            "paper": "#e9e6d6"
+          },
+          "grey": {
+            "200": "#bfbcad",
+            "300": "#bfbcad"
+          },
+          "text": {
+            "primary": "#123138"
+          }
+        }
+      },
+      "dark": {
+        "palette": {
+          "primary": {
+            "main": "#5C67FF"
+          },
+          "secondary": {
+            "main": "#F7C2FF"
+          }
+        }
+      }
+    },
+    "typography": {
+      "fontFamily": "Roboto Mono, monospace"
+    },
+    "container": {
+      "boxShadow": "0px 8px 32px rgba(0, 0, 0, 0.08)",
+      "borderRadius": "16px"
+    },
+    "shape": {
+      "borderRadiusSecondary": 8,
+      "borderRadius": 8
+    }
+  }
+}
+
