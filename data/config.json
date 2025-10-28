@@ -1,5 +1,5 @@
 {
-  "minimumTokenBalance": 1000,
+  "minimumTokenBalance": 1,
   "tokenAddress": "0x7db6dfe35158bab10039648ce0e0e119d0ec21ec",
   "chainId": 8453,
   "chainName": "Base"
