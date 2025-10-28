@@ -56,9 +56,10 @@ export default function SwapPage() {
   const formattedBalance =
     balance && decimals
       ? parseFloat(formatUnits(balance, decimals)).toLocaleString(undefined, {
-          maximumFractionDigits: 0,
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
         })
-      : '0';
+      : '0.00';
 
   return (
     <main className="min-h-screen w-full overflow-hidden relative">

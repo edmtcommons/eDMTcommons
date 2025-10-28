@@ -86,7 +86,10 @@ export function TokenGate({ children }: TokenGateProps) {
             You need at least {GALLERY_CONFIG.minimumTokenBalance.toLocaleString()} eDMT tokens to access this content.
           </p>
           <p className="text-white/60 text-sm mb-6">
-            Your current balance: {formattedBalance.toLocaleString()} eDMT
+            Your current balance: {formattedBalance.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })} eDMT
           </p>
           <button
             onClick={() => router.push('/swap')}
