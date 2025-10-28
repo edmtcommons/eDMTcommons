@@ -4,7 +4,7 @@ import { useAccount } from 'wagmi';
 import { useReadContract } from 'wagmi';
 import { formatUnits } from 'viem';
 import { erc20Abi } from 'viem';
-import { EDMT_TOKEN_ADDRESS, EDMT_MIN_BALANCE } from '@/lib/constants';
+import { EDMT_TOKEN_ADDRESS, EDMT_MIN_BALANCE, GALLERY_CONFIG } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -83,7 +83,7 @@ export function TokenGate({ children }: TokenGateProps) {
             Insufficient eDMT Tokens
           </h2>
           <p className="text-white/80 mb-2">
-            You need at least 1,000 eDMT tokens to access this content.
+            You need at least {GALLERY_CONFIG.minimumTokenBalance.toLocaleString()} eDMT tokens to access this content.
           </p>
           <p className="text-white/60 text-sm mb-6">
             Your current balance: {formattedBalance.toLocaleString()} eDMT

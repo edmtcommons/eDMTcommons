@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import videosData from '@/data/videos.json';
+import configData from '@/data/config.json';
+import { GALLERY_CONFIG } from '@/lib/constants';
 
 interface Video {
   id: string;
@@ -14,6 +16,7 @@ interface Video {
 
 export default function AdminPage() {
   const [videos, setVideos] = useState<Video[]>(videosData.videos);
+  const [config, setConfig] = useState(configData);
   const [formData, setFormData] = useState({
     title: '',
     url: '',
@@ -21,10 +24,11 @@ export default function AdminPage() {
     membersOnly: false,
   });
   const [jsonOutput, setJsonOutput] = useState('');
+  const [configJsonOutput, setConfigJsonOutput] = useState('');
 
-  useEffect(() => {
-    updateJsonOutput(videos);
-  }, [videos]);
+  const updateConfigJsonOutput = useCallback((configData: typeof config) => {
+    setConfigJsonOutput(JSON.stringify(configData, null, 2));
+  }, []);
 
   const updateJsonOutput = (videosList: Video[]) => {
     const jsonData = {
@@ -32,6 +36,11 @@ export default function AdminPage() {
     };
     setJsonOutput(JSON.stringify(jsonData, null, 2));
   };
+
+  useEffect(() => {
+    updateJsonOutput(videos);
+    updateConfigJsonOutput(config);
+  }, [videos, config, updateConfigJsonOutput]);
 
   const handleAdd = () => {
     if (!formData.title || !formData.url) {
@@ -69,10 +78,64 @@ export default function AdminPage() {
     alert('JSON copied to clipboard! You can now paste it into data/videos.json');
   };
 
+  const handleConfigCopy = () => {
+    navigator.clipboard.writeText(configJsonOutput);
+    alert('Config JSON copied to clipboard! You can now paste it into data/config.json');
+  };
+
+  const updateMinimumBalance = (newBalance: number) => {
+    const updatedConfig = { ...config, minimumTokenBalance: newBalance };
+    setConfig(updatedConfig);
+  };
+
   return (
     <main className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Video Gallery Management</h1>
+        <h1 className="text-3xl font-bold mb-8">Gallery Management</h1>
+
+        {/* Config Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-2xl font-semibold mb-4">Gallery Configuration</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Minimum Token Balance (eDMT)
+              </label>
+              <input
+                type="number"
+                value={config.minimumTokenBalance}
+                onChange={(e) =>
+                  updateMinimumBalance(parseInt(e.target.value) || 0)
+                }
+                className="w-full px-4 py-2 border rounded-lg"
+                min="0"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Current value: {config.minimumTokenBalance.toLocaleString()} eDMT tokens required for gallery access
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium mb-2">Config JSON</h3>
+              <textarea
+                value={configJsonOutput}
+                readOnly
+                className="w-full h-32 px-4 py-2 border rounded-lg font-mono text-xs"
+              />
+              <button
+                onClick={handleConfigCopy}
+                className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
+              >
+                Copy Config JSON
+              </button>
+              <p className="text-xs text-gray-500 mt-2">
+                Replace contents of <code className="bg-gray-100 px-1 rounded">data/config.json</code>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Video Management */}
+        <h2 className="text-2xl font-semibold mb-4">Video Gallery Management</h2>
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* Form */}
