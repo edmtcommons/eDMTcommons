@@ -8,7 +8,7 @@ import dynamic from 'next/dynamic';
 import { useReadContract } from 'wagmi';
 import { formatUnits } from 'viem';
 import { erc20Abi } from 'viem';
-import { EDMT_TOKEN_ADDRESS } from '@/lib/constants';
+import { EDMT_TOKEN_ADDRESS, TOKEN_NAME } from '@/lib/constants';
 
 // Dynamically import Li.Fi Widget to avoid SSR issues
 const LiFiWidget = dynamic(
@@ -89,7 +89,7 @@ export default function SwapPage() {
               Welcome inside
             </h2>
             <p className="text-primary/80 mb-4 leading-relaxed">
-              Your eDMT balance is sufficient to join the private eDMT community
+              Your {TOKEN_NAME} balance is sufficient to join the private {TOKEN_NAME} community
               channels and help us govern our research into this groundbreaking
               field.
             </p>
@@ -125,7 +125,7 @@ export default function SwapPage() {
                 <div>
                   <p className="text-primary/60 text-sm">Your balance</p>
                   <p className="text-primary text-2xl font-bold">
-                    {formattedBalance} eDMT
+                    {formattedBalance} {TOKEN_NAME}
                   </p>
                 </div>
               </div>
@@ -146,11 +146,11 @@ export default function SwapPage() {
           {/* Swap Card */}
           <div className="bg-cream rounded-2xl p-8 shadow-2xl">
             <h2 className="text-2xl font-semibold text-primary mb-6">
-              Swap eDMT
+              Swap {TOKEN_NAME}
             </h2>
             <div className="widget-container">
               <LiFiWidget
-                integrator="eDMT-Gallery"
+                integrator={`${TOKEN_NAME}-Gallery`}
                 config={{
                   variant: 'compact' as any,
                   subvariant: 'split' as any,
@@ -193,7 +193,7 @@ export default function SwapPage() {
                     },
                   },
                   toChain: 8453, // Base chain
-                  toToken: '0x7db6dfe35158bab10039648ce0e0e119d0ec21ec', // eDMT address
+                  toToken: '0x7db6dfe35158bab10039648ce0e0e119d0ec21ec', // Token address
                 } as any}
               />
               <p className="text-primary/60 text-xs mt-4 text-center">

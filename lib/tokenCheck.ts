@@ -1,6 +1,6 @@
 import { createPublicClient, http, formatUnits } from 'viem';
 import { base } from 'viem/chains';
-import { EDMT_TOKEN_ADDRESS, EDMT_MIN_BALANCE } from './constants';
+import { EDMT_TOKEN_ADDRESS, EDMT_MIN_BALANCE, TOKEN_NAME } from './constants';
 import { erc20Abi } from 'viem';
 
 const publicClient = createPublicClient({
@@ -32,7 +32,7 @@ export async function checkEDMTBalance(address: `0x${string}`): Promise<{
 
     return { balance, formatted, hasAccess };
   } catch (error) {
-    console.error('Error checking eDMT balance:', error);
+    console.error(`Error checking ${TOKEN_NAME} balance:`, error);
     return { balance: 0n, formatted: '0', hasAccess: false };
   }
 }

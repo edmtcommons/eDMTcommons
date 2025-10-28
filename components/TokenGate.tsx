@@ -4,7 +4,7 @@ import { useAccount } from 'wagmi';
 import { useReadContract } from 'wagmi';
 import { formatUnits } from 'viem';
 import { erc20Abi } from 'viem';
-import { EDMT_TOKEN_ADDRESS, EDMT_MIN_BALANCE, GALLERY_CONFIG } from '@/lib/constants';
+import { EDMT_TOKEN_ADDRESS, EDMT_MIN_BALANCE, GALLERY_CONFIG, TOKEN_NAME } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -58,13 +58,13 @@ export function TokenGate({ children }: TokenGateProps) {
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-md text-center">
           <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
           <p className="text-white/80 mb-6">
-            Unable to verify your eDMT balance. Please try again.
+            Unable to verify your {TOKEN_NAME} balance. Please try again.
           </p>
           <button
             onClick={() => router.push('/swap')}
             className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-xl transition-colors"
           >
-            Get eDMT Tokens
+            Get {TOKEN_NAME} Tokens
           </button>
         </div>
       </div>
@@ -80,22 +80,22 @@ export function TokenGate({ children }: TokenGateProps) {
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-md text-center">
           <h2 className="text-2xl font-bold text-white mb-4">
-            Insufficient eDMT Tokens
+            Insufficient {TOKEN_NAME} Tokens
           </h2>
           <p className="text-white/80 mb-2">
-            You need at least {GALLERY_CONFIG.minimumTokenBalance.toLocaleString()} eDMT tokens to access this content.
+            You need at least {GALLERY_CONFIG.minimumTokenBalance.toLocaleString()} {TOKEN_NAME} tokens to access this content.
           </p>
           <p className="text-white/60 text-sm mb-6">
             Your current balance: {formattedBalance.toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
-            })} eDMT
+            })} {TOKEN_NAME}
           </p>
           <button
             onClick={() => router.push('/swap')}
             className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-xl transition-colors"
           >
-            Get More eDMT Tokens
+            Get More {TOKEN_NAME} Tokens
           </button>
         </div>
       </div>

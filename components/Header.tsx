@@ -4,7 +4,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useReadContract, useDisconnect } from 'wagmi';
 import { formatUnits } from 'viem';
 import { erc20Abi } from 'viem';
-import { EDMT_TOKEN_ADDRESS } from '@/lib/constants';
+import { EDMT_TOKEN_ADDRESS, TOKEN_NAME } from '@/lib/constants';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -73,7 +73,7 @@ export function Header() {
             />
           </svg>
         </div>
-        <span className="text-white text-xl font-medium">eDMT</span>
+        <span className="text-white text-xl font-medium">{TOKEN_NAME}</span>
       </Link>
 
       {/* Navigation */}
@@ -84,7 +84,7 @@ export function Header() {
             pathname === '/swap' ? 'font-semibold' : ''
           }`}
         >
-          GET $eDMT
+          GET ${TOKEN_NAME}
         </Link>
         <Link
           href="/gallery"
@@ -125,7 +125,7 @@ export function Header() {
                 <span className="text-white text-sm">Loading...</span>
               ) : (
                 <span className="text-white text-sm font-medium">
-                  {formattedBalance} eDMT
+                  {formattedBalance} {TOKEN_NAME}
                 </span>
               )}
               <svg

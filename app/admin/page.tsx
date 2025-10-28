@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import videosData from '@/data/videos.json';
 import configData from '@/data/config.json';
-import { GALLERY_CONFIG } from '@/lib/constants';
+import { GALLERY_CONFIG, TOKEN_NAME } from '@/lib/constants';
 
 interface Video {
   id: string;
@@ -99,7 +99,7 @@ export default function AdminPage() {
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Minimum Token Balance (eDMT)
+                Minimum Token Balance ({TOKEN_NAME})
               </label>
               <input
                 type="number"
@@ -111,7 +111,7 @@ export default function AdminPage() {
                 min="0"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Current value: {config.minimumTokenBalance.toLocaleString()} eDMT tokens required for gallery access
+                Current value: {config.minimumTokenBalance.toLocaleString()} {TOKEN_NAME} tokens required for gallery access
               </p>
             </div>
             <div>

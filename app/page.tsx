@@ -4,6 +4,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { TOKEN_NAME } from '@/lib/constants';
 
 export default function Home() {
   const { isConnected } = useAccount();
@@ -69,7 +70,7 @@ export default function Home() {
 
         {/* Description */}
         <p className="text-sm text-primary mb-8 leading-relaxed">
-          eDMT is granting early membership to token holders. Sign in and
+          {TOKEN_NAME} is granting early membership to token holders. Sign in and
           connect your wallet to qualify.
         </p>
 
