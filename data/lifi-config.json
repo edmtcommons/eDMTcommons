@@ -8,14 +8,13 @@
         "main": "#5c314c"
       },
       "secondary": {
-        "main": "#5c314c"
+        "main": "#F3B9D6"
       },
       "background": {
-        "default": "#e9e6d6",
-        "paper": "#e9e6d6"
+        "default": "#E9E6D6",
+        "paper": "#E9E6D6"
       },
       "grey": {
-        "200": "#bfbcad",
         "300": "#bfbcad"
       },
       "text": {
@@ -26,8 +25,7 @@
       "fontFamily": "Roboto Mono, monospace"
     },
     "container": {
-      "boxShadow": "0px 8px 32px rgba(0, 0, 0, 0.08)",
-      "borderRadius": "16px"
+      "borderRadius": "24px"
     },
     "shape": {
       "borderRadiusSecondary": 8,
