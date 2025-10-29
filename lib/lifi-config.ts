@@ -18,10 +18,10 @@ import lifiConfigJson from '@/data/lifi-config.json';
 export const lifiConfig = {
   variant: lifiConfigJson.variant,
   subvariant: lifiConfigJson.subvariant,
-  subvariantOptions: lifiConfigJson.subvariantOptions,
   appearance: lifiConfigJson.appearance,
-  // Hide wallet menu since we use RainbowKit for wallet connection
-  hiddenUI: ['walletMenu'],
+  // Hide UI elements per LiFi documentation
+  // https://docs.li.fi/widget/customize-widget#hidden-ui-elements
+  hiddenUI: ['toAddress', 'walletMenu', 'poweredBy'],
   theme: {
     palette: lifiConfigJson.theme?.palette,
     shape: lifiConfigJson.theme?.shape,
