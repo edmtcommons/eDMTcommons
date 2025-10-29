@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 export function Footer() {
   return (
-    <footer className="w-full py-6 px-6 flex items-center justify-center bg-transparent z-10 relative">
+    <footer className="w-full py-6 px-6 flex items-center justify-center bg-transparent z-10 fixed bottom-0 left-0 right-0">
       <div className="flex items-center gap-6">
         {/* X.com Icon */}
         <a

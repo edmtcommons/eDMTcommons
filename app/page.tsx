@@ -17,7 +17,7 @@ export default function Home() {
   }, [isConnected, router]);
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden flex items-center justify-center">
+    <main className="relative min-h-screen w-full overflow-hidden flex items-center justify-center pb-24">
       {/* Background Video/Image */}
       <div className="absolute inset-0 z-0">
         <video

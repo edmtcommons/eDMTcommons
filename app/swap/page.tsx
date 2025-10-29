@@ -59,7 +59,7 @@ export default function SwapPage() {
       : '0.00';
 
   return (
-    <main className="min-h-screen w-full overflow-hidden relative">
+    <main className="w-full overflow-hidden relative pb-24">
       {/* Background */}
       <div className="absolute inset-0 z-0">
         <video
