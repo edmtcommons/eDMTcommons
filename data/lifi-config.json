@@ -1,7 +1,6 @@
 {
   "variant": "compact",
-  "subvariant": "default"
-  },
+  "subvariant": "default",
   "appearance": "light",
   "theme": {
     "palette": {
