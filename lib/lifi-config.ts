@@ -21,7 +21,10 @@ export const lifiConfig = {
   appearance: lifiConfigJson.appearance,
   // Hide UI elements per LiFi documentation
   // https://docs.li.fi/widget/customize-widget#hidden-ui-elements
-  hiddenUI: ['toAddress', 'walletMenu', 'poweredBy'],
+  hiddenUI: ['toAddress', 'walletMenu', 'poweredBy', 'language', 'appearance'],
+  // Disable UI elements per LiFi documentation
+  // https://docs.li.fi/widget/customize-widget#disabled-ui-elements
+  disabledUI: ['toToken'],
   theme: {
     palette: lifiConfigJson.theme?.palette,
     shape: lifiConfigJson.theme?.shape,
