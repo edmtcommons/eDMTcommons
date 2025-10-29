@@ -140,22 +140,17 @@ export default function SwapPage() {
             </a>
           </div>
 
-          {/* Swap Card */}
-          <div className="bg-cream rounded-2xl p-8 shadow-2xl">
-            <h2 className="text-2xl font-semibold text-primary mb-6">
-              Swap {TOKEN_NAME}
-            </h2>
-            <div className="widget-container lifi-widget-hide-wallet">
-              <LiFiWidget
-                integrator={`${TOKEN_NAME}-Gallery`}
-                config={{
-                  ...lifiConfig,
-                  fromChain: chain?.id ?? GALLERY_CONFIG.chainId,
-                  toChain: GALLERY_CONFIG.chainId,
-                  toToken: GALLERY_CONFIG.tokenAddress,
-                } as any}
-              />
-            </div>
+          {/* LiFi Widget - fills entire column */}
+          <div className="widget-container lifi-widget-hide-wallet w-full h-full">
+            <LiFiWidget
+              integrator={`${TOKEN_NAME}-Gallery`}
+              config={{
+                ...lifiConfig,
+                fromChain: chain?.id ?? GALLERY_CONFIG.chainId,
+                toChain: GALLERY_CONFIG.chainId,
+                toToken: GALLERY_CONFIG.tokenAddress,
+              } as any}
+            />
           </div>
         </div>
       </div>
