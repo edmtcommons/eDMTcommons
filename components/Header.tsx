@@ -76,7 +76,7 @@ export function Header() {
             pathname === '/gallery' ? 'font-semibold' : ''
           }`}
         >
-          MEDIA
+          Media
         </Link>
 
         {/* Wallet Display */}
