@@ -8,10 +8,10 @@ import lifiConfigJson from '@/data/lifi-config.json';
  */
 export const lifiConfig = {
   ...lifiConfigJson,
-  appearance: lifiConfigJson.appearance as 'light',
-  variant: lifiConfigJson.variant as 'compact',
-  subvariant: lifiConfigJson.subvariant as 'split',
-  subvariantOptions: lifiConfigJson.subvariantOptions as {
+  appearance: 'light',
+  variant: 'compact',
+  subvariant: 'split',
+  subvariantOptions: {
     split: 'swap'
   },
 };
