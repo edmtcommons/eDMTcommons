@@ -153,7 +153,7 @@ export default function SwapPage() {
                   fromChain: chain?.id ?? GALLERY_CONFIG.chainId,
                   toChain: GALLERY_CONFIG.chainId,
                   toToken: GALLERY_CONFIG.tokenAddress,
-                }}
+                } as any}
               />
             </div>
           </div>
