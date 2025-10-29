@@ -6,37 +6,23 @@
   },
   "appearance": "light",
   "theme": {
-    "colorSchemes": {
-      "light": {
-        "palette": {
-          "primary": {
-            "main": "#5c314c"
-          },
-          "secondary": {
-            "main": "#5c314c"
-          },
-          "background": {
-            "default": "#e9e6d6",
-            "paper": "#e9e6d6"
-          },
-          "grey": {
-            "200": "#bfbcad",
-            "300": "#bfbcad"
-          },
-          "text": {
-            "primary": "#123138"
-          }
-        }
+    "palette": {
+      "primary": {
+        "main": "#5c314c"
       },
-      "dark": {
-        "palette": {
-          "primary": {
-            "main": "#5C67FF"
-          },
-          "secondary": {
-            "main": "#F7C2FF"
-          }
-        }
+      "secondary": {
+        "main": "#5c314c"
+      },
+      "background": {
+        "default": "#e9e6d6",
+        "paper": "#e9e6d6"
+      },
+      "grey": {
+        "200": "#bfbcad",
+        "300": "#bfbcad"
+      },
+      "text": {
+        "primary": "#123138"
       }
     },
     "typography": {

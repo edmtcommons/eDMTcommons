@@ -5,12 +5,28 @@ import lifiConfigJson from '@/data/lifi-config.json';
  * The widget automatically integrates with wagmi/RainbowKit for wallet management
  * 
  * @see https://docs.li.fi/widget/configure-widget
+ * @see https://docs.li.fi/widget/customize-widget
  * 
- * IMPORTANT: This exports the entire JSON config exactly as it appears in lifi-config.json.
- * All properties including theme, subvariantOptions, variant, subvariant, and appearance
- * are passed directly to the widget.
+ * This config structure matches the LiFi Widget API from the documentation:
+ * - theme.palette: Color palette (primary, secondary, background, text, grey)
+ * - theme.shape: Border radius settings
+ * - theme.typography: Font family
+ * - theme.container: Container styling (boxShadow, borderRadius)
+ * 
+ * All properties from lifi-config.json are passed directly to the widget.
  */
 export const lifiConfig = {
-  ...lifiConfigJson,
+  variant: lifiConfigJson.variant,
+  subvariant: lifiConfigJson.subvariant,
+  subvariantOptions: lifiConfigJson.subvariantOptions,
+  appearance: lifiConfigJson.appearance,
+  // Hide wallet menu since we use RainbowKit for wallet connection
+  hiddenUI: ['walletMenu'],
+  theme: {
+    palette: lifiConfigJson.theme?.palette,
+    shape: lifiConfigJson.theme?.shape,
+    typography: lifiConfigJson.theme?.typography,
+    container: lifiConfigJson.theme?.container,
+  },
 };
 
