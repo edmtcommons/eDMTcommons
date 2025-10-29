@@ -150,11 +150,10 @@ export default function SwapPage() {
                 integrator={`${TOKEN_NAME}-Gallery`}
                 config={{
                   ...lifiConfig,
-                  // Initialize form values per LiFi documentation
-                  fromChain: chain?.id || GALLERY_CONFIG.chainId,
+                  fromChain: chain?.id ?? GALLERY_CONFIG.chainId,
                   toChain: GALLERY_CONFIG.chainId,
                   toToken: GALLERY_CONFIG.tokenAddress,
-                } as any}
+                }}
               />
             </div>
           </div>
