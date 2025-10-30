@@ -43,7 +43,7 @@ export default function Home() {
           {/* Logo Icon */}
           <div className="flex justify-center">
             <img
-              src="/assets/logo.svg"
+              src="/assets/eDMT-icon.svg"
               alt="eDMT Logo"
               className="h-[60px] w-auto md:h-[75px] lg:h-[90.854px] lg:w-[62.619px]"
             />
