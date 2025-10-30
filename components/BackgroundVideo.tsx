@@ -15,14 +15,29 @@ export function BackgroundVideo({
   const { setVideoLoaded } = useVideoLoader();
   const videoRef = useRef<HTMLVideoElement>(null);
   const hasNotifiedLoaded = useRef(false);
+  const minimumLoadTime = useRef(false);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video || hasNotifiedLoaded.current) return;
 
-    // Mark video as loaded when it can start playing
+    // Ensure video is configured for autoplay
+    video.muted = true;
+    video.volume = 0;
+    video.playsInline = true;
+
+    // Mark video as loaded when it's actually playing
     const markAsLoaded = () => {
-      if (!hasNotifiedLoaded.current) {
+      // Wait for minimum load time (ensures loading screen is visible)
+      if (!minimumLoadTime.current) {
+        setTimeout(() => {
+          minimumLoadTime.current = true;
+          if (!hasNotifiedLoaded.current) {
+            hasNotifiedLoaded.current = true;
+            setVideoLoaded(true);
+          }
+        }, 1500); // Minimum 1.5 seconds for loading screen
+      } else if (!hasNotifiedLoaded.current) {
         hasNotifiedLoaded.current = true;
         setVideoLoaded(true);
       }
@@ -30,17 +45,22 @@ export function BackgroundVideo({
 
     // Function to attempt playing the video
     const attemptPlay = async () => {
-      if (!video) return;
+      if (!video || hasNotifiedLoaded.current) return;
       
       // Ensure video is muted (required for autoplay)
       video.muted = true;
       video.volume = 0;
       
       try {
-        await video.play();
-        markAsLoaded();
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          await playPromise;
+          // Video is playing - mark as loaded after minimum time
+          markAsLoaded();
+        }
       } catch (error) {
-        // Autoplay was prevented - mark as loaded anyway so content shows
+        // Autoplay was prevented - still mark as loaded after minimum time
+        console.log('Video autoplay prevented, will play on interaction');
         markAsLoaded();
       }
     };
@@ -48,31 +68,34 @@ export function BackgroundVideo({
     // Event handlers
     const handleCanPlay = () => {
       attemptPlay();
-      markAsLoaded();
+    };
+
+    const handleCanPlayThrough = () => {
+      attemptPlay();
     };
 
     const handleLoadedData = () => {
       attemptPlay();
-      markAsLoaded();
     };
 
     const handlePlaying = () => {
+      // Video is actually playing - mark as loaded
       markAsLoaded();
     };
 
     const handleError = () => {
-      // Even if video fails, show content
+      // Even if video fails, show content after minimum time
       markAsLoaded();
     };
 
     // Check if video is already ready
     if (video.readyState >= 3) {
       attemptPlay();
-      markAsLoaded();
     }
 
     // Add event listeners
     video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('canplaythrough', handleCanPlayThrough);
     video.addEventListener('loadeddata', handleLoadedData);
     video.addEventListener('playing', handlePlaying);
     video.addEventListener('error', handleError);
@@ -80,15 +103,16 @@ export function BackgroundVideo({
     // Try to play immediately
     attemptPlay();
 
-    // Fallback: mark as loaded after 2 seconds even if video hasn't loaded
+    // Fallback: mark as loaded after 3 seconds maximum even if video hasn't loaded
     const fallbackTimeout = setTimeout(() => {
       markAsLoaded();
-    }, 2000);
+    }, 3000);
 
     // Cleanup
     return () => {
       clearTimeout(fallbackTimeout);
       video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('canplaythrough', handleCanPlayThrough);
       video.removeEventListener('loadeddata', handleLoadedData);
       video.removeEventListener('playing', handlePlaying);
       video.removeEventListener('error', handleError);
