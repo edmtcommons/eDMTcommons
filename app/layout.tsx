@@ -50,8 +50,9 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/assets/eDMT-icon.svg',
-    apple: '/assets/eDMT-icon.svg',
+    icon: '/assets/favicon.png',
+    apple: '/assets/favicon.png',
+    shortcut: '/assets/favicon.png',
   },
 };
 
@@ -63,6 +64,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Favicon */}
+        <link rel="icon" type="image/png" href="/assets/favicon.png" />
+        <link rel="shortcut icon" type="image/png" href="/assets/favicon.png" />
+        <link rel="apple-touch-icon" href="/assets/favicon.png" />
         {/* Preload background video for better caching */}
         <link rel="preload" href="/assets/bg-video.mp4" as="video" />
         <link rel="preload" href="/assets/bg-video.webm" as="video" />
