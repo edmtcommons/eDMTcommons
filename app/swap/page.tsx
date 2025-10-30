@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
+import { BackgroundVideo } from '@/components/BackgroundVideo';
 import dynamic from 'next/dynamic';
 import { useReadContract } from 'wagmi';
 import { formatUnits } from 'viem';
@@ -21,7 +22,6 @@ const LiFiWidget = dynamic(
 export default function SwapPage() {
   const { isConnected, address, chain } = useAccount();
   const router = useRouter();
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   const { data: balance } = useReadContract({
     address: EDMT_TOKEN_ADDRESS,
@@ -48,16 +48,6 @@ export default function SwapPage() {
     }
   }, [isConnected, router]);
 
-  useEffect(() => {
-    // Ensure video plays even if autoplay is blocked
-    const video = videoRef.current;
-    if (video) {
-      video.play().catch((error) => {
-        console.log('Video autoplay failed:', error);
-      });
-    }
-  }, []);
-
   if (!isConnected) {
     return null;
   }
@@ -72,21 +62,8 @@ export default function SwapPage() {
 
   return (
     <main className="w-full min-h-screen overflow-hidden relative pb-24">
-      {/* Background */}
-      <div className="fixed inset-0 z-0">
-          <video
-          ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          className="w-full h-full object-center object-cover"
-        >
-          <source src="/assets/bg-video.webm" type="video/webm" />
-          <source src="/assets/bg-video.mp4" type="video/mp4" />
-        </video>
-      </div>
+      {/* Background Video */}
+      <BackgroundVideo containerClassName="fixed inset-0 z-0" />
 
       {/* Header */}
       <Header />
