@@ -10,6 +10,7 @@ import { formatUnits } from 'viem';
 import { erc20Abi } from 'viem';
 import { EDMT_TOKEN_ADDRESS, TOKEN_NAME, GALLERY_CONFIG } from '@/lib/constants';
 import { lifiConfig } from '@/lib/lifi-config';
+import Image from 'next/image';
 
 // Dynamically import LiFi Widget to avoid SSR issues
 const LiFiWidget = dynamic(
@@ -62,12 +63,12 @@ export default function SwapPage() {
     <main className="w-full overflow-hidden relative pb-24">
       {/* Background */}
       <div className="absolute inset-0 z-0">
-        <video
+          <video
           autoPlay
           loop
           muted
           playsInline
-          className="w-full h-full object-cover"
+          className="w-full h-full object-center object-cover"
         >
           <source src="/assets/bg-video.mp4" type="video/mp4" />
         </video>
@@ -78,70 +79,67 @@ export default function SwapPage() {
       <Header />
 
       {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-6 py-12">
-        <div className="grid md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+      <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8 lg:py-10">
+        <div className="flex gap-6 md:gap-8 lg:gap-10 items-center justify-center max-w-[1474px] mx-auto flex-col md:flex-row">
           {/* Welcome Card */}
-          <div className="bg-cream rounded-2xl p-8 shadow-2xl">
-            <h2 className="text-3xl font-serif text-primary mb-6">
-              Welcome inside
-            </h2>
-            <p className="text-primary/80 mb-4 leading-relaxed">
-              Your {TOKEN_NAME} balance is sufficient to join the private {TOKEN_NAME} community
-              channels and help us govern our research into this groundbreaking
-              field.
-            </p>
-            <p className="text-primary/80 mb-8 leading-relaxed">
-              Join us on this introspective journey using the links below.
-            </p>
+          <div className="bg-cream rounded-3xl p-6 md:p-8 lg:p-10 shadow-2xl w-full md:w-[800px] h-auto md:h-[550px] flex flex-col gap-8 md:gap-10 lg:gap-12">
+            <div className="flex flex-col gap-4 md:gap-5 lg:gap-6 items-start text-text-primary w-full">
+              <h2 className="text-[32px] md:text-[40px] lg:text-[48px] font-serif leading-[1.1] w-full">
+                Welcome inside
+              </h2>
+              <div className="font-mono font-medium text-[16px] md:text-[17px] lg:text-[18px] leading-[1.3] w-full">
+                <p className="mb-0">
+                  Your {TOKEN_NAME} balance is sufficient to join the private {TOKEN_NAME} community
+                  channels and help us govern our research into this groundbreaking
+                  field.
+                </p>
+                <p className="mb-0">&nbsp;</p>
+                <p>Join us on this introspective journey using the links below.</p>
+              </div>
+            </div>
 
-            {/* Balance Display */}
-            <div className="flex items-center justify-between mb-6 p-4 bg-white/50 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M12 6C9 6 7 8 7 11C7 14 9 16 12 16C15 16 17 14 17 11C17 8 15 6 12 6ZM12 14C10.35 14 9 12.65 9 11C9 9.35 10.35 8 12 8C13.65 8 15 9.35 15 11C15 12.65 13.65 14 12 14Z"
-                      fill="white"
-                    />
-                    <rect
-                      x="11"
-                      y="15"
-                      width="2"
-                      height="6"
-                      rx="1"
-                      fill="white"
-                    />
-                  </svg>
+            {/* Balance and Telegram Section */}
+            <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-stretch md:items-start w-full">
+              {/* Balance Display */}
+              <div className="basis-0 border border-border border-solid rounded-lg p-3 md:p-4 flex gap-3 md:gap-4 items-center grow min-w-0">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Image
+                    src="/assets/avatar.png"
+                    alt="Token"
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-cover rounded-lg"
+                  />
                 </div>
-                <div>
-                  <p className="text-primary/60 text-sm">Your balance</p>
-                  <p className="text-primary text-2xl font-bold">
+                <div className="flex flex-col items-start leading-normal text-text-primary text-center whitespace-nowrap min-w-0">
+                  <p className="font-mono font-normal text-[13px] md:text-[15px]">Your balance</p>
+                  <p className="font-mono font-medium text-[20px] md:text-[22px] lg:text-[24px]">
                     {formattedBalance} {TOKEN_NAME}
                   </p>
                 </div>
               </div>
-            </div>
 
-            {/* Telegram Button */}
-            <a
-              href="https://t.me/edmt"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full bg-primary hover:bg-primary-dark text-white font-medium py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors"
-            >
-              <span>💬</span>
-              Join Telegram
-            </a>
+              {/* Telegram Button */}
+              <a
+                href="https://t.me/edmt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="basis-0 bg-button flex gap-3 md:gap-4 grow h-[56px] md:h-[72px] items-center justify-center min-w-0 px-2 py-2 rounded-lg"
+              >
+                <img
+                  src="/assets/telegram-icon.svg"
+                  alt=""
+                  className="w-[20px] h-[15px] md:w-[23.99px] md:h-[18.286px]"
+                />
+                <span className="font-mono font-semibold leading-normal text-text-button text-[16px] md:text-[18px] text-center whitespace-nowrap">
+                  Join Telegram
+                </span>
+              </a>
+            </div>
           </div>
 
           {/* LiFi Widget - fills entire column */}
-          <div className="widget-container lifi-widget-hide-wallet w-full h-full">
+          <div className="widget-container lifi-widget-hide-wallet w-full md:w-[634px] h-auto md:h-[550px] bg-cream rounded-3xl p-6 md:p-8 lg:p-10 shadow-2xl">
             <LiFiWidget
               integrator={`${TOKEN_NAME}-Gallery`}
               config={{
