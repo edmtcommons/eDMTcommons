@@ -5,7 +5,6 @@ import { useAccount } from 'wagmi';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { TOKEN_NAME } from '@/lib/constants';
-import { BackgroundVideo } from '@/components/BackgroundVideo';
 
 export default function Home() {
   const { isConnected } = useAccount();
@@ -19,8 +18,6 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen w-full overflow-hidden flex items-center justify-center pb-24">
-      {/* Background Video */}
-      <BackgroundVideo />
 
       {/* Modal Card */}
       <div className="relative z-10 bg-cream w-full max-w-[800px] mx-4 rounded-3xl shadow-2xl p-8 md:p-12 lg:p-16">

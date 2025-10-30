@@ -12,18 +12,33 @@ export function BackgroundVideo({
   className = 'w-full h-full object-center object-cover',
   containerClassName = 'absolute inset-0 z-0',
 }: BackgroundVideoProps) {
-  const { setVideoLoaded } = useVideoLoader();
+  const { isVideoLoaded, setVideoLoaded } = useVideoLoader();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hasSetUpListeners = useRef(false);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
+    // If video is already loaded from context, don't set up listeners again
+    if (isVideoLoaded && hasSetUpListeners.current) {
+      // Just ensure video is playing
+      if (video.paused) {
+        video.play().catch(() => {});
+      }
+      return;
+    }
+
     // Check if video is already cached/loaded
     if (video.readyState >= 3) {
       setVideoLoaded(true);
+      hasSetUpListeners.current = true;
       return;
     }
+
+    // Only set up listeners once
+    if (hasSetUpListeners.current) return;
+    hasSetUpListeners.current = true;
 
     // Listen for when video can play through
     const handleCanPlayThrough = () => {
@@ -44,17 +59,23 @@ export function BackgroundVideo({
     video.addEventListener('loadeddata', handleLoadedData);
     video.addEventListener('error', handleError);
 
-    // Ensure video plays even if autoplay is blocked
-    video.play().catch((error) => {
-      console.log('Video autoplay failed:', error);
-    });
+    // Only play if video is not already playing
+    if (video.paused) {
+      video.play().catch((error) => {
+        console.log('Video autoplay failed:', error);
+      });
+    }
 
     return () => {
-      video.removeEventListener('canplaythrough', handleCanPlayThrough);
-      video.removeEventListener('loadeddata', handleLoadedData);
-      video.removeEventListener('error', handleError);
+      // Don't remove listeners on unmount if video is loaded
+      // This keeps the video playing across navigations
+      if (!isVideoLoaded) {
+        video.removeEventListener('canplaythrough', handleCanPlayThrough);
+        video.removeEventListener('loadeddata', handleLoadedData);
+        video.removeEventListener('error', handleError);
+      }
     };
-  }, [setVideoLoaded]);
+  }, [setVideoLoaded, isVideoLoaded]);
 
   return (
     <div className={containerClassName}>

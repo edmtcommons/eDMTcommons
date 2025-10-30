@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
-import { BackgroundVideo } from '@/components/BackgroundVideo';
 import dynamic from 'next/dynamic';
 import { useReadContract } from 'wagmi';
 import { formatUnits } from 'viem';
@@ -62,8 +61,6 @@ export default function SwapPage() {
 
   return (
     <main className="w-full min-h-screen overflow-hidden relative pb-24">
-      {/* Background Video */}
-      <BackgroundVideo containerClassName="fixed inset-0 z-0" />
 
       {/* Header */}
       <Header />

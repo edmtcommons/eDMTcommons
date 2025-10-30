@@ -2,6 +2,7 @@
 
 import { useVideoLoader } from '@/lib/video-loader';
 import { LoadingScreen } from './LoadingScreen';
+import { BackgroundVideo } from './BackgroundVideo';
 import { useEffect, useState } from 'react';
 
 export function AppWrapper({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,8 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      {/* Background Video - persistent across all pages */}
+      <BackgroundVideo containerClassName="fixed inset-0 z-0" />
       {!isVideoLoaded && <LoadingScreen />}
       <div
         className={`transition-opacity duration-1000 ${
