@@ -11,12 +11,7 @@ export default function GalleryPage() {
       {/* Background - Static images with overlay */}
       <div className="absolute inset-0 pointer-events-none">
         <img
-          src="/assets/gallery-bg-1.png"
-          alt=""
-          className="absolute max-w-none object-center object-cover w-full h-full"
-        />
-        <img
-          src="/assets/gallery-bg-2.png"
+          src="/assets/gallery-bg-1.jpg"
           alt=""
           className="absolute max-w-none object-center object-cover w-full h-full"
         />
