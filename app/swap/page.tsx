@@ -86,7 +86,6 @@ export default function SwapPage() {
           <source src="/assets/bg-video.webm" type="video/webm" />
           <source src="/assets/bg-video.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-teal-900 via-blue-900 to-teal-900 opacity-60" />
       </div>
 
       {/* Header */}
