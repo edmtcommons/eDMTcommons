@@ -2,13 +2,14 @@
 
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { TOKEN_NAME } from '@/lib/constants';
 
 export default function Home() {
   const { isConnected } = useAccount();
   const router = useRouter();
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (isConnected) {
@@ -16,22 +17,34 @@ export default function Home() {
     }
   }, [isConnected, router]);
 
+  useEffect(() => {
+    // Ensure video plays even if autoplay is blocked
+    const video = videoRef.current;
+    if (video) {
+      video.play().catch((error) => {
+        console.log('Video autoplay failed:', error);
+      });
+    }
+  }, []);
+
   return (
     <main className="relative min-h-screen w-full overflow-hidden flex items-center justify-center pb-24">
       {/* Background Video/Image */}
       <div className="absolute inset-0 z-0">
         <video
+          ref={videoRef}
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
           className="w-full h-full object-center object-cover"
         >
           <source src="/assets/bg-video.webm" type="video/webm" />
           <source src="/assets/bg-video.mp4" type="video/mp4" />
         </video>
         {/* Fallback gradient if video doesn't load */}
-        <div className="absolute inset-0 bg-gradient-to-b from-teal-900 via-blue-900 to-teal-900" />
+        <div className="absolute inset-0 bg-gradient-to-b from-teal-900 via-blue-900 to-teal-900 opacity-60" />
       </div>
 
       {/* Modal Card */}
@@ -55,8 +68,7 @@ export default function Home() {
 
             {/* Description */}
             <p className="text-[16px] md:text-[17px] lg:text-[18px] font-mono font-medium leading-[1.3] w-full">
-              {TOKEN_NAME} is granting early membership to token holders. Sign in and
-              connect your wallet to qualify.
+              {TOKEN_NAME} is granting early membership to token holders. Sign in and connect your wallet to qualify.
             </p>
           </div>
 

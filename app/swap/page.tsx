@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
@@ -21,6 +21,7 @@ const LiFiWidget = dynamic(
 export default function SwapPage() {
   const { isConnected, address, chain } = useAccount();
   const router = useRouter();
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const { data: balance } = useReadContract({
     address: EDMT_TOKEN_ADDRESS,
@@ -47,6 +48,16 @@ export default function SwapPage() {
     }
   }, [isConnected, router]);
 
+  useEffect(() => {
+    // Ensure video plays even if autoplay is blocked
+    const video = videoRef.current;
+    if (video) {
+      video.play().catch((error) => {
+        console.log('Video autoplay failed:', error);
+      });
+    }
+  }, []);
+
   if (!isConnected) {
     return null;
   }
@@ -60,20 +71,22 @@ export default function SwapPage() {
       : '0.00';
 
   return (
-    <main className="w-full overflow-hidden relative pb-24">
+    <main className="w-full min-h-screen overflow-hidden relative pb-24">
       {/* Background */}
-      <div className="absolute inset-0 z-0">
+      <div className="fixed inset-0 z-0">
           <video
+          ref={videoRef}
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
           className="w-full h-full object-center object-cover"
         >
           <source src="/assets/bg-video.webm" type="video/webm" />
           <source src="/assets/bg-video.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-teal-900 via-blue-900 to-teal-900" />
+        <div className="absolute inset-0 bg-gradient-to-b from-teal-900 via-blue-900 to-teal-900 opacity-60" />
       </div>
 
       {/* Header */}
@@ -81,7 +94,7 @@ export default function SwapPage() {
 
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8 lg:py-10">
-        <div className="flex gap-6 md:gap-8 lg:gap-10 items-center justify-center max-w-[1474px] mx-auto flex-col md:flex-row">
+        <div className="flex gap-6 md:gap-8 lg:gap-10 items-top justify-center max-w-[1474px] mx-auto flex-col md:flex-row">
           {/* Welcome Card */}
           <div className="bg-cream rounded-3xl p-6 md:p-8 lg:p-10 shadow-2xl w-full md:w-[800px] h-auto md:h-[550px] flex flex-col gap-8 md:gap-10 lg:gap-12">
             <div className="flex flex-col gap-4 md:gap-5 lg:gap-6 items-start text-text-primary w-full">
@@ -102,8 +115,8 @@ export default function SwapPage() {
             {/* Balance and Telegram Section */}
             <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-stretch md:items-start w-full">
               {/* Balance Display */}
-              <div className="basis-0 border border-border border-solid rounded-lg p-3 md:p-4 flex gap-3 md:gap-4 items-center grow min-w-0">
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="basis-0 border border-border border-solid rounded-lg p-3 md:p-4 flex gap-3 md:gap-4 items-center grow min-w-0 h-[56px] md:h-[72px]">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                   <Image
                     src="/assets/avatar.png"
                     alt="Token"
@@ -125,7 +138,7 @@ export default function SwapPage() {
                 href="https://t.me/edmt"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="basis-0 bg-button flex gap-3 md:gap-4 grow h-[56px] md:h-[72px] items-center justify-center min-w-0 px-2 py-2 rounded-lg"
+                className="basis-0 bg-button flex gap-3 md:gap-4 grow h-[56px] md:h-[72px] items-center justify-center min-w-0 p-3 md:p-4 rounded-lg"
               >
                 <img
                   src="/assets/telegram-icon.svg"
@@ -140,16 +153,21 @@ export default function SwapPage() {
           </div>
 
           {/* LiFi Widget - fills entire column */}
-          <div className="widget-container lifi-widget-hide-wallet w-full md:w-[634px] h-auto md:h-[550px] bg-cream rounded-3xl p-6 md:p-8 lg:p-10 shadow-2xl">
-            <LiFiWidget
-              integrator={`${TOKEN_NAME}-Gallery`}
-              config={{
-                ...lifiConfig,
-                fromChain: chain?.id ?? GALLERY_CONFIG.chainId,
-                toChain: GALLERY_CONFIG.chainId,
-                toToken: GALLERY_CONFIG.tokenAddress,
-              } as any}
-            />
+          <div className="widget-container lifi-widget-hide-wallet w-full md:w-[422px] bg-cream rounded-3xl pt-6 md:pt-8 lg:pt-10 px-6 md:px-8 lg:px-10 pb-0 shadow-2xl flex flex-col items-center gap-8 md:gap-10 lg:gap-12">
+            <h2 className="text-[32px] md:text-[40px] lg:text-[48px] font-serif leading-[1.1] text-text-primary z-20 -mb-[60px] text-left w-full">
+              Get eDMT
+            </h2>
+            <div className="w-full min-h-0 -mx-2 md:-mx-3 lg:-mx-4 flex justify-center">
+              <LiFiWidget
+                integrator={`${TOKEN_NAME}-Gallery`}
+                config={{
+                  ...lifiConfig,
+                  fromChain: chain?.id ?? GALLERY_CONFIG.chainId,
+                  toChain: GALLERY_CONFIG.chainId,
+                  toToken: GALLERY_CONFIG.tokenAddress,
+                } as any}
+              />
+            </div>
           </div>
         </div>
       </div>
