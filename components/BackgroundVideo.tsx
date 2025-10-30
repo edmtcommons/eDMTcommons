@@ -12,70 +12,89 @@ export function BackgroundVideo({
   className = 'w-full h-full object-center object-cover',
   containerClassName = 'absolute inset-0 z-0',
 }: BackgroundVideoProps) {
-  const { isVideoLoaded, setVideoLoaded } = useVideoLoader();
+  const { setVideoLoaded } = useVideoLoader();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const hasSetUpListeners = useRef(false);
+  const hasLoaded = useRef(false);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || hasLoaded.current) return;
 
-    // If video is already loaded from context, don't set up listeners again
-    if (isVideoLoaded && hasSetUpListeners.current) {
-      // Just ensure video is playing
-      if (video.paused) {
-        video.play().catch(() => {});
+    // Set up event listeners
+    const handleCanPlay = () => {
+      if (!hasLoaded.current) {
+        hasLoaded.current = true;
+        setVideoLoaded(true);
+        // Ensure video plays
+        video.play().catch((error) => {
+          console.log('Video autoplay failed:', error);
+        });
       }
-      return;
-    }
-
-    // Check if video is already cached/loaded
-    if (video.readyState >= 3) {
-      setVideoLoaded(true);
-      hasSetUpListeners.current = true;
-      return;
-    }
-
-    // Only set up listeners once
-    if (hasSetUpListeners.current) return;
-    hasSetUpListeners.current = true;
-
-    // Listen for when video can play through
-    const handleCanPlayThrough = () => {
-      setVideoLoaded(true);
     };
 
     const handleLoadedData = () => {
-      // Video has loaded enough data to start playing
-      setVideoLoaded(true);
+      if (!hasLoaded.current) {
+        hasLoaded.current = true;
+        setVideoLoaded(true);
+        // Ensure video plays
+        video.play().catch((error) => {
+          console.log('Video autoplay failed:', error);
+        });
+      }
     };
 
     const handleError = () => {
       // Even if video fails, show content
-      setVideoLoaded(true);
+      if (!hasLoaded.current) {
+        hasLoaded.current = true;
+        setVideoLoaded(true);
+      }
     };
 
-    video.addEventListener('canplaythrough', handleCanPlayThrough);
-    video.addEventListener('loadeddata', handleLoadedData);
-    video.addEventListener('error', handleError);
-
-    // Only play if video is not already playing
-    if (video.paused) {
+    // Check if video is already ready
+    if (video.readyState >= 3) {
+      hasLoaded.current = true;
+      setVideoLoaded(true);
       video.play().catch((error) => {
         console.log('Video autoplay failed:', error);
       });
+      return;
     }
 
+    // Add event listeners
+    video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('loadeddata', handleLoadedData);
+    video.addEventListener('error', handleError);
+
+    // Try to play immediately
+    video.play().catch((error) => {
+      console.log('Video autoplay failed:', error);
+    });
+
+    // Cleanup
     return () => {
-      // Don't remove listeners on unmount if video is loaded
-      // This keeps the video playing across navigations
-      if (!isVideoLoaded) {
-        video.removeEventListener('canplaythrough', handleCanPlayThrough);
-        video.removeEventListener('loadeddata', handleLoadedData);
-        video.removeEventListener('error', handleError);
+      video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('loadeddata', handleLoadedData);
+      video.removeEventListener('error', handleError);
+    };
+  }, [setVideoLoaded]);
+
+  // Ensure video keeps playing if it pauses
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handlePause = () => {
+      if (hasLoaded.current && video.paused) {
+        video.play().catch(() => {});
       }
     };
-  }, [setVideoLoaded, isVideoLoaded]);
+
+    video.addEventListener('pause', handlePause);
+    return () => {
+      video.removeEventListener('pause', handlePause);
+    };
+  }, []);
 
   return (
     <div className={containerClassName}>
