@@ -7,17 +7,12 @@ import { useEffect, useState } from 'react';
 
 export function AppWrapper({ children }: { children: React.ReactNode }) {
   const { isVideoLoaded } = useVideoLoader();
-  const [showContent, setShowContent] = useState(isVideoLoaded);
+  const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
     if (isVideoLoaded) {
-      // Small delay for fade transition
-      const timer = setTimeout(() => {
-        setShowContent(true);
-      }, 100);
-      return () => clearTimeout(timer);
-    } else {
-      setShowContent(false);
+      // Show content after video is loaded
+      setShowContent(true);
     }
   }, [isVideoLoaded]);
 
@@ -25,12 +20,19 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
     <>
       {/* Background Video - persistent across all pages */}
       <BackgroundVideo containerClassName="fixed inset-0 z-0" />
+      
+      {/* Loading Screen - shown while video is loading */}
       {!isVideoLoaded && <LoadingScreen />}
+      
+      {/* Main Content - fades in after video loads */}
       <div
-        className={`transition-opacity duration-1000 ${
+        className={`transition-opacity duration-500 ${
           showContent ? 'opacity-100' : 'opacity-0'
         }`}
-        style={{ visibility: showContent ? 'visible' : 'hidden' }}
+        style={{ 
+          visibility: showContent ? 'visible' : 'hidden',
+          pointerEvents: showContent ? 'auto' : 'none'
+        }}
       >
         {children}
       </div>

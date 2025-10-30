@@ -14,144 +14,114 @@ export function BackgroundVideo({
 }: BackgroundVideoProps) {
   const { setVideoLoaded } = useVideoLoader();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const hasLoaded = useRef(false);
-  const playAttempted = useRef(false);
-
-  // Function to attempt playing the video
-  const attemptPlay = (video: HTMLVideoElement) => {
-    if (playAttempted.current && !video.paused) return;
-    
-    // Ensure video is muted and volume is 0 (required for autoplay)
-    video.muted = true;
-    video.volume = 0;
-    
-    const playPromise = video.play();
-    
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          // Video is playing
-          playAttempted.current = true;
-          if (!hasLoaded.current) {
-            hasLoaded.current = true;
-            setVideoLoaded(true);
-          }
-        })
-        .catch((error) => {
-          // Autoplay was prevented, but we'll try again when user interacts
-          console.log('Video autoplay prevented:', error);
-          // Still mark as loaded so content shows
-          if (!hasLoaded.current) {
-            hasLoaded.current = true;
-            setVideoLoaded(true);
-          }
-        });
-    }
-  };
+  const hasNotifiedLoaded = useRef(false);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || hasNotifiedLoaded.current) return;
 
-    // Ensure video is configured for autoplay
-    video.muted = true;
-    video.volume = 0;
-    video.playsInline = true;
-    video.setAttribute('muted', '');
-    video.setAttribute('playsinline', '');
-
-    // Set up event listeners
-    const handleCanPlay = () => {
-      attemptPlay(video);
-    };
-
-    const handleLoadedData = () => {
-      attemptPlay(video);
-    };
-
-    const handleLoadedMetadata = () => {
-      attemptPlay(video);
-    };
-
-    const handleError = () => {
-      // Even if video fails, show content
-      if (!hasLoaded.current) {
-        hasLoaded.current = true;
+    // Mark video as loaded when it can start playing
+    const markAsLoaded = () => {
+      if (!hasNotifiedLoaded.current) {
+        hasNotifiedLoaded.current = true;
         setVideoLoaded(true);
       }
     };
 
+    // Function to attempt playing the video
+    const attemptPlay = async () => {
+      if (!video) return;
+      
+      // Ensure video is muted (required for autoplay)
+      video.muted = true;
+      video.volume = 0;
+      
+      try {
+        await video.play();
+        markAsLoaded();
+      } catch (error) {
+        // Autoplay was prevented - mark as loaded anyway so content shows
+        markAsLoaded();
+      }
+    };
+
+    // Event handlers
+    const handleCanPlay = () => {
+      attemptPlay();
+      markAsLoaded();
+    };
+
+    const handleLoadedData = () => {
+      attemptPlay();
+      markAsLoaded();
+    };
+
+    const handlePlaying = () => {
+      markAsLoaded();
+    };
+
+    const handleError = () => {
+      // Even if video fails, show content
+      markAsLoaded();
+    };
+
     // Check if video is already ready
-    if (video.readyState >= 2) {
-      attemptPlay(video);
+    if (video.readyState >= 3) {
+      attemptPlay();
+      markAsLoaded();
     }
 
     // Add event listeners
     video.addEventListener('canplay', handleCanPlay);
     video.addEventListener('loadeddata', handleLoadedData);
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('playing', handlePlaying);
     video.addEventListener('error', handleError);
 
     // Try to play immediately
-    attemptPlay(video);
+    attemptPlay();
 
-    // Also try after a short delay to catch edge cases
-    const timeoutId = setTimeout(() => {
-      attemptPlay(video);
-    }, 100);
+    // Fallback: mark as loaded after 2 seconds even if video hasn't loaded
+    const fallbackTimeout = setTimeout(() => {
+      markAsLoaded();
+    }, 2000);
 
     // Cleanup
     return () => {
-      clearTimeout(timeoutId);
+      clearTimeout(fallbackTimeout);
       video.removeEventListener('canplay', handleCanPlay);
       video.removeEventListener('loadeddata', handleLoadedData);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('playing', handlePlaying);
       video.removeEventListener('error', handleError);
     };
   }, [setVideoLoaded]);
-
-  // Ensure video keeps playing if it pauses
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const handlePause = () => {
-      if (hasLoaded.current && video.paused) {
-        // Re-ensure muted before playing
-        video.muted = true;
-        video.volume = 0;
-        video.play().catch(() => {});
-      }
-    };
-
-    video.addEventListener('pause', handlePause);
-    return () => {
-      video.removeEventListener('pause', handlePause);
-    };
-  }, []);
 
   // Handle user interaction to enable autoplay if it was blocked
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const handleUserInteraction = () => {
-      if (video.paused && hasLoaded.current) {
+    const handleUserInteraction = async () => {
+      if (video.paused) {
         video.muted = true;
         video.volume = 0;
-        video.play().catch(() => {});
+        try {
+          await video.play();
+        } catch (error) {
+          // Ignore errors
+        }
       }
     };
 
-    // Listen for any user interaction on the document
-    document.addEventListener('click', handleUserInteraction, { once: true });
-    document.addEventListener('touchstart', handleUserInteraction, { once: true });
-    document.addEventListener('keydown', handleUserInteraction, { once: true });
+    // Listen for any user interaction
+    const events = ['click', 'touchstart', 'keydown'];
+    events.forEach(event => {
+      document.addEventListener(event, handleUserInteraction, { once: true });
+    });
 
     return () => {
-      document.removeEventListener('click', handleUserInteraction);
-      document.removeEventListener('touchstart', handleUserInteraction);
-      document.removeEventListener('keydown', handleUserInteraction);
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserInteraction);
+      });
     };
   }, []);
 
