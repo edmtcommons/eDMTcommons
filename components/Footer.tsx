@@ -1,8 +1,16 @@
 'use client';
 
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 export function Footer() {
+  const pathname = usePathname();
+  
+  // Hide footer on home page
+  if (pathname === '/') {
+    return null;
+  }
+  
   return (
     <footer className="w-full py-6 px-6 flex items-center justify-center bg-transparent z-10 fixed bottom-0 left-0 right-0">
       <div className="flex items-center gap-6">
