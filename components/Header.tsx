@@ -47,24 +47,24 @@ export function Header() {
   };
 
   return (
-    <header className="w-full px-6 py-4 flex items-center justify-between bg-transparent z-20 relative">
+    <header className="w-full px-4 md:px-6 lg:px-8 py-4 flex items-center justify-between bg-transparent z-20 relative">
       {/* Logo */}
       <Link href="/swap" className="flex items-center gap-2">
         <Image
           src="/assets/logo.svg"
           alt={TOKEN_NAME}
-          width={200}
-          height={53}
-          className="w-[200px] h-auto"
+          width={202}
+          height={64}
+          className="h-[40px] md:h-[50px] lg:h-[64px] w-auto"
           priority
         />
       </Link>
 
       {/* Navigation */}
-      <nav className="flex items-center gap-6">
+      <nav className="flex items-center gap-4 md:gap-6 lg:gap-10">
         <Link
           href="/swap"
-          className={`text-white hover:opacity-80 transition-opacity ${
+          className={`text-text-button font-mono font-medium text-[14px] md:text-[16px] lg:text-[18px] leading-[1.3] hover:opacity-80 transition-opacity whitespace-nowrap ${
             pathname === '/swap' ? 'font-semibold' : ''
           }`}
         >
@@ -72,75 +72,48 @@ export function Header() {
         </Link>
         <Link
           href="/gallery"
-          className={`text-white hover:opacity-80 transition-opacity ${
+          className={`text-text-button font-mono font-medium text-[14px] md:text-[16px] lg:text-[18px] leading-[1.3] hover:opacity-80 transition-opacity whitespace-nowrap ${
             pathname === '/gallery' ? 'font-semibold' : ''
           }`}
         >
-          Media
+          MEDIA
         </Link>
 
         {/* Wallet Display */}
         {isConnected && (
-          <div className="flex items-center gap-3">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 flex items-center gap-2">
-              <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M7 3.5C6.3 3.5 5.75 4.05 5.75 4.75C5.75 5.45 6.3 6 7 6C7.7 6 8.25 5.45 8.25 4.75C8.25 4.05 7.7 3.5 7 3.5ZM7 5.25C6.775 5.25 6.625 5.1 6.625 4.875C6.625 4.65 6.775 4.5 7 4.5C7.225 4.5 7.375 4.65 7.375 4.875C7.375 5.1 7.225 5.25 7 5.25Z"
-                    fill="white"
-                  />
-                  <rect
-                    x="6.125"
-                    y="7.875"
-                    width="1.75"
-                    height="4.375"
-                    rx="0.5"
-                    fill="white"
-                  />
-                </svg>
+          <div className="flex items-center gap-2">
+            <div className="bg-[rgba(11,30,34,0.5)] border border-button border-solid rounded-[72px] px-3 md:px-4 py-3 md:py-4 flex items-center justify-center gap-2">
+              <div className="w-6 h-6 md:w-8 md:h-8 bg-primary rounded-full flex items-center justify-center overflow-hidden">
+                <Image
+                  src="/assets/avatar.png"
+                  alt="Avatar"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-cover"
+                />
               </div>
               {balanceLoading ? (
-                <span className="text-white text-sm">Loading...</span>
+                <span className="text-text-button font-mono font-medium text-[14px] md:text-[16px] lg:text-[18px] leading-[1.3] whitespace-nowrap">Loading...</span>
               ) : (
-                <span className="text-white text-sm font-medium">
+                <span className="text-text-button font-mono font-medium text-[14px] md:text-[16px] lg:text-[18px] leading-[1.3] whitespace-nowrap">
                   {formattedBalance} {TOKEN_NAME}
                 </span>
               )}
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6 4L10 8L6 12"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
             </div>
             <button
               onClick={handleDisconnect}
-              className="w-8 h-8 flex items-center justify-center text-white hover:opacity-80 transition-opacity"
+              className="w-6 h-6 flex items-center justify-center text-text-button hover:opacity-80 transition-opacity"
+              aria-label="Sign out"
             >
               <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="M15 5L5 15M5 5L15 15"
+                  d="M18 6L6 18M6 6L18 18"
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
@@ -155,7 +128,7 @@ export function Header() {
             {({ openConnectModal }) => (
               <button
                 onClick={openConnectModal}
-                className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 text-white hover:bg-white/20 transition-colors"
+                className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 text-text-button hover:bg-white/20 transition-colors font-mono font-medium text-[18px]"
               >
                 Connect Wallet
               </button>

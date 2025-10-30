@@ -29,7 +29,7 @@ export default function Home() {
           loop
           muted
           playsInline
-          className="w-full h-full object-cover"
+          className="w-full h-full object-center object-cover"
         >
           <source src="/assets/bg-video.mp4" type="video/mp4" />
         </video>
@@ -38,111 +38,87 @@ export default function Home() {
       </div>
 
       {/* Modal Card */}
-      <div className="relative z-10 bg-cream w-full max-w-md mx-4 rounded-2xl shadow-2xl p-8">
-        {/* Logo Icon */}
-        <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center">
-            <svg
-              width="40"
-              height="40"
-              viewBox="0 0 40 40"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M20 10C15 10 11 14 11 19C11 24 15 28 20 28C25 28 29 24 29 19C29 14 25 10 20 10ZM20 26C16.7 26 14 23.3 14 20C14 16.7 16.7 14 20 14C23.3 14 26 16.7 26 20C26 23.3 23.3 26 20 26Z"
-                fill="currentColor"
-                className="text-white"
-              />
-              <rect
-                x="18"
-                y="22"
-                width="4"
-                height="8"
-                rx="1"
-                fill="currentColor"
-                className="text-white"
-              />
-            </svg>
+      <div className="relative z-10 bg-cream w-full max-w-[800px] mx-4 rounded-3xl shadow-2xl p-8 md:p-12 lg:p-16">
+        <div className="flex flex-col gap-8 md:gap-10 lg:gap-12 items-center">
+          {/* Logo Icon */}
+          <div className="flex justify-center">
+            <img
+              src="/assets/logo.svg"
+              alt="eDMT Logo"
+              className="h-[60px] w-auto md:h-[75px] lg:h-[90.854px] lg:w-[62.619px]"
+            />
           </div>
-        </div>
 
-        {/* Heading */}
-        <h1 className="text-4xl font-serif text-primary text-center mb-4">
-          Open The Door
-        </h1>
+          {/* Content */}
+          <div className="flex flex-col gap-4 md:gap-5 lg:gap-6 items-start text-text-primary w-full text-center">
+            {/* Heading */}
+            <h1 className="text-[32px] md:text-[40px] lg:text-[48px] font-serif leading-[1.1] w-full">
+              Open The Door
+            </h1>
 
-        {/* Description */}
-        <p className="text-sm text-primary mb-8 leading-relaxed">
-          {TOKEN_NAME} is granting early membership to token holders. Sign in and
-          connect your wallet to qualify.
-        </p>
+            {/* Description */}
+            <p className="text-[16px] md:text-[17px] lg:text-[18px] font-mono font-medium leading-[1.3] w-full">
+              {TOKEN_NAME} is granting early membership to token holders. Sign in and
+              connect your wallet to qualify.
+            </p>
+          </div>
 
-        {/* Connect Button */}
-        <div className="flex justify-center">
-          <ConnectButton.Custom>
-            {({
-              account,
-              chain,
-              openAccountModal,
-              openChainModal,
-              openConnectModal,
-              authenticationStatus,
-              mounted,
-            }) => {
-              const ready = mounted && authenticationStatus !== 'loading';
-              const connected =
-                ready &&
-                account &&
-                chain &&
-                (!authenticationStatus ||
-                  authenticationStatus === 'authenticated');
+          {/* Connect Button */}
+          <div className="flex justify-center">
+            <ConnectButton.Custom>
+              {({
+                account,
+                chain,
+                openAccountModal,
+                openChainModal,
+                openConnectModal,
+                authenticationStatus,
+                mounted,
+              }) => {
+                const ready = mounted && authenticationStatus !== 'loading';
+                const connected =
+                  ready &&
+                  account &&
+                  chain &&
+                  (!authenticationStatus ||
+                    authenticationStatus === 'authenticated');
 
-              return (
-                <div
-                  {...(!ready && {
-                    'aria-hidden': true,
-                    style: {
-                      opacity: 0,
-                      pointerEvents: 'none',
-                      userSelect: 'none',
-                    },
-                  })}
-                >
-                  {(() => {
-                    if (!connected) {
-                      return (
-                        <button
-                          onClick={openConnectModal}
-                          type="button"
-                          className="w-full bg-primary hover:bg-primary-dark text-white font-medium py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors"
-                        >
-                          <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 20 20"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
+                return (
+                  <div
+                    {...(!ready && {
+                      'aria-hidden': true,
+                      style: {
+                        opacity: 0,
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                      },
+                    })}
+                  >
+                    {(() => {
+                      if (!connected) {
+                        return (
+                          <button
+                            onClick={openConnectModal}
+                            type="button"
+                            className="bg-button hover:bg-button/90 text-text-button font-mono font-semibold text-[16px] md:text-[18px] h-[56px] md:h-[72px] rounded-lg px-2 py-2 flex items-center justify-center gap-2 transition-colors w-full md:w-[200px]"
                           >
-                            <path
-                              d="M15 10V6C15 4.89543 14.1046 4 13 4H4C2.89543 4 2 4.89543 2 6V14C2 15.1046 2.89543 16 4 16H9M15 10L12 7M15 10L12 13"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
+                            <img
+                              src="/assets/stairs-icon.svg"
+                              alt=""
+                              className="w-6 h-6"
                             />
-                          </svg>
-                          Connect
-                        </button>
-                      );
-                    }
+                            Connect
+                          </button>
+                        );
+                      }
 
-                    return null;
-                  })()}
-                </div>
-              );
-            }}
-          </ConnectButton.Custom>
+                      return null;
+                    })()}
+                  </div>
+                );
+              }}
+            </ConnectButton.Custom>
+          </div>
         </div>
       </div>
     </main>

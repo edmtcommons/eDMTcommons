@@ -23,12 +23,27 @@ const config: Config = {
           light: "#7a4a68",
         },
         cream: {
-          DEFAULT: "#f8f5ed",
+          DEFAULT: "#e9e6d6",
+        },
+        button: {
+          DEFAULT: "#204f5b",
+        },
+        text: {
+          primary: "#123138",
+          button: "#e9e6d6",
+        },
+        border: {
+          DEFAULT: "#bfbcad",
+        },
+        badge: {
+          bg: "#47273b",
+          border: "#7d4869",
+          text: "#f3b9d6",
         },
       },
       fontFamily: {
-        serif: ['Georgia', 'serif'],
-        mono: ['Roboto Mono', 'monospace'],
+        serif: ['Basteleur', 'serif'],
+        mono: ['Geist Mono', 'monospace'],
       },
     },
   },
