@@ -27,6 +27,7 @@ export default function Home() {
           playsInline
           className="w-full h-full object-center object-cover"
         >
+          <source src="/assets/bg-video.webm" type="video/webm" />
           <source src="/assets/bg-video.mp4" type="video/mp4" />
         </video>
         {/* Fallback gradient if video doesn't load */}
