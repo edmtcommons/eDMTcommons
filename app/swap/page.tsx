@@ -70,7 +70,7 @@ export default function SwapPage() {
       <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8 lg:py-10">
         <div className="flex gap-6 md:gap-8 lg:gap-10 items-top justify-center max-w-[1474px] mx-auto flex-col md:flex-row">
           {/* Welcome Card */}
-          <div className="bg-cream rounded-3xl p-6 md:p-8 lg:p-10 shadow-2xl w-full md:w-[800px] h-auto md:h-[550px] flex flex-col gap-8 md:gap-10 lg:gap-12">
+          <div className="bg-cream rounded-3xl p-6 md:p-8 lg:p-10 shadow-2xl w-full md:w-[800px] min-h-[570px] flex flex-col gap-8 md:gap-10 lg:gap-12">
             <div className="flex flex-col gap-4 md:gap-5 lg:gap-6 items-start text-text-primary w-full">
               <h2 className="text-[32px] md:text-[40px] lg:text-[48px] font-serif leading-[1.1] w-full">
                 Welcome inside
@@ -126,7 +126,7 @@ export default function SwapPage() {
             </div>
 
             {/* Explore Media Gallery Link */}
-            <div className="flex gap-4 items-center justify-end w-full">
+            <div className="flex gap-4 items-center justify-end w-full mt-auto">
               <img
                 src="/assets/television-icon.svg"
                 alt=""
@@ -142,7 +142,7 @@ export default function SwapPage() {
           </div>
 
           {/* LiFi Widget - fills entire column */}
-          <div className="widget-container lifi-widget-hide-wallet w-full md:w-[392px] bg-cream rounded-3xl pt-8 px-8 pb-2 shadow-2xl flex flex-col items-center gap-8 md:gap-10 lg:gap-12">
+          <div className="widget-container lifi-widget-hide-wallet w-full md:w-[392px] bg-cream rounded-3xl pt-8 px-8 pb-2 shadow-2xl min-h-[570px] flex flex-col items-center gap-8 md:gap-10 lg:gap-12">
             <h2 className="text-[32px] md:text-[40px] lg:text-[48px] font-serif leading-[1.1] text-text-primary z-20 -mb-[60px] text-left w-full ml-3">
               Get eDMT
             </h2>
