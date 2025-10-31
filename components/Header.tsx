@@ -82,7 +82,7 @@ export function Header() {
         {/* Wallet Display */}
         {isConnected && (
           <div className="flex items-center gap-2">
-            <div className="bg-[rgba(11,30,34,0.5)] border border-button border-solid rounded-[72px] px-3 md:px-4 py-3 md:py-4 flex items-center justify-center gap-2">
+            <div className="bg-[rgba(11,30,34,0.5)] border border-button border-solid rounded-[72px] px-3 md:px-4 py-3 md:py-4 flex items-center justify-center gap-2 mr-8">
               <div className="w-6 h-6 md:w-8 md:h-8 bg-primary rounded-full flex items-center justify-center overflow-hidden">
                 <Image
                   src="/assets/avatar.png"

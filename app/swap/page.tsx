@@ -126,8 +126,8 @@ export default function SwapPage() {
           </div>
 
           {/* LiFi Widget - fills entire column */}
-          <div className="widget-container lifi-widget-hide-wallet w-full md:w-[392px] bg-cream rounded-3xl pt-8 px-8 pb-0 shadow-2xl flex flex-col items-center gap-8 md:gap-10 lg:gap-12">
-            <h2 className="text-[32px] md:text-[40px] lg:text-[48px] font-serif leading-[1.1] text-text-primary z-20 -mb-[60px] text-left w-full">
+          <div className="widget-container lifi-widget-hide-wallet w-full md:w-[392px] bg-cream rounded-3xl pt-8 px-8 pb-2 shadow-2xl flex flex-col items-center gap-8 md:gap-10 lg:gap-12">
+            <h2 className="text-[32px] md:text-[40px] lg:text-[48px] font-serif leading-[1.1] text-text-primary z-20 -mb-[60px] text-left w-full ml-3">
               Get eDMT
             </h2>
             <div className="w-full min-h-0 -mx-2 md:-mx-3 lg:-mx-4 flex justify-center">
