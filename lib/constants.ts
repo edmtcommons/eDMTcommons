@@ -16,4 +16,7 @@ export const GALLERY_CONFIG = {
   chainName: configData.chainName,
 };
 
+// Export admin whitelist
+export const ADMIN_WHITELIST = (configData.adminWhitelist || []) as string[];
+
 

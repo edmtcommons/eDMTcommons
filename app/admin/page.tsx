@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import videosData from '@/data/videos.json';
 import configData from '@/data/config.json';
 import { GALLERY_CONFIG, TOKEN_NAME } from '@/lib/constants';
+import { AdminGate } from '@/components/AdminGate';
 
 interface Video {
   id: string;
@@ -89,9 +90,10 @@ export default function AdminPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Gallery Management</h1>
+    <AdminGate>
+      <main className="min-h-screen bg-gray-100 p-8">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8">Gallery Management</h1>
 
         {/* Config Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
@@ -257,6 +259,7 @@ export default function AdminPage() {
         </div>
       </div>
     </main>
+    </AdminGate>
   );
 }
 
