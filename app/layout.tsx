@@ -50,9 +50,12 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/assets/favicon.png',
+    icon: [
+      { url: '/assets/favicon.ico', sizes: 'any' },
+      { url: '/assets/favicon.png', type: 'image/png' },
+    ],
     apple: '/assets/favicon.png',
-    shortcut: '/assets/favicon.png',
+    shortcut: '/assets/favicon.ico',
   },
 };
 
@@ -65,8 +68,9 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Favicon */}
+        <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
         <link rel="icon" type="image/png" href="/assets/favicon.png" />
-        <link rel="shortcut icon" type="image/png" href="/assets/favicon.png" />
+        <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico" />
         <link rel="apple-touch-icon" href="/assets/favicon.png" />
         {/* Preload background video for better caching */}
         <link rel="preload" href="/assets/bg-video.mp4" as="video" />

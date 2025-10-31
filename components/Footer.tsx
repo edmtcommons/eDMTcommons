@@ -19,7 +19,7 @@ export function Footer() {
           href="https://x.com/psy_dao"
           target="_blank"
           rel="noopener noreferrer"
-          className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all duration-300 group"
+          className="w-10 h-10 flex items-center justify-center transition-all duration-300 group"
           aria-label="Visit PsyDAO on X (Twitter)"
         >
           <Image
@@ -36,7 +36,7 @@ export function Footer() {
           href="https://www.psydao.io"
           target="_blank"
           rel="noopener noreferrer"
-          className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all duration-300 group"
+          className="w-10 h-10 flex items-center justify-center transition-all duration-300 group"
           aria-label="Visit PsyDAO website"
         >
           <Image
