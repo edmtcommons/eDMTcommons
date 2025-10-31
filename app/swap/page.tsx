@@ -11,6 +11,7 @@ import { erc20Abi } from 'viem';
 import { EDMT_TOKEN_ADDRESS, TOKEN_NAME, GALLERY_CONFIG } from '@/lib/constants';
 import { lifiConfig } from '@/lib/lifi-config';
 import Image from 'next/image';
+import Link from 'next/link';
 
 // Dynamically import LiFi Widget to avoid SSR issues
 const LiFiWidget = dynamic(
@@ -122,6 +123,21 @@ export default function SwapPage() {
                   Join Telegram
                 </span>
               </a>
+            </div>
+
+            {/* Explore Media Gallery Link */}
+            <div className="flex gap-4 items-center justify-end w-full">
+              <img
+                src="/assets/television-icon.svg"
+                alt=""
+                className="w-6 h-6"
+              />
+              <Link
+                href="/gallery"
+                className="font-mono font-medium leading-[1.3] text-[#7d4869] text-[16px] md:text-[18px] underline whitespace-nowrap hover:opacity-80 transition-opacity"
+              >
+                Explore eDMT Media Gallery
+              </Link>
             </div>
           </div>
 
