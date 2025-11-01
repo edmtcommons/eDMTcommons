@@ -3,8 +3,6 @@
 import { useState, useRef } from 'react';
 import { useAccount } from 'wagmi';
 import videosData from '@/data/videos.json';
-import configData from '@/data/config.json';
-import { GALLERY_CONFIG, TOKEN_NAME } from '@/lib/constants';
 import { AdminGate } from '@/components/AdminGate';
 
 type VideoType = 'youtube' | 'uploaded';
@@ -27,7 +25,6 @@ export default function AdminPage() {
       type: (v as any).type || 'youtube' as VideoType,
     }))
   );
-  const [config, setConfig] = useState(configData);
   const [videoType, setVideoType] = useState<VideoType>('youtube');
   const [formData, setFormData] = useState({
     title: '',
@@ -85,41 +82,6 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Error saving videos:', error);
       alert(`Failed to save videos: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const saveConfig = async (configToSave: typeof configData) => {
-    if (!address) {
-      alert('Wallet not connected');
-      return false;
-    }
-
-    try {
-      setSaving(true);
-      const response = await fetch('/api/admin/config', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          config: configToSave,
-          walletAddress: address,
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to save config');
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error saving config:', error);
-      alert(`Failed to save config: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     } finally {
       setSaving(false);
@@ -301,11 +263,6 @@ export default function AdminPage() {
     setDraggedIndex(null);
   };
 
-  const updateMinimumBalance = (newBalance: number) => {
-    const updatedConfig = { ...config, minimumTokenBalance: newBalance };
-    setConfig(updatedConfig);
-  };
-
   const handleSaveAll = async () => {
     if (!address) {
       alert('Wallet not connected');
@@ -318,13 +275,6 @@ export default function AdminPage() {
       // Save videos
       const videosSaved = await saveVideos(videos);
       if (!videosSaved) {
-        setSaving(false);
-        return;
-      }
-
-      // Save config
-      const configSaved = await saveConfig(config);
-      if (!configSaved) {
         setSaving(false);
         return;
       }
@@ -364,28 +314,6 @@ export default function AdminPage() {
                 </svg>
                 Save Changes
               </button>
-            </div>
-          </div>
-
-          {/* Config Section */}
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Gallery Configuration</h2>
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Minimum Token Balance ({TOKEN_NAME})
-              </label>
-              <input
-                type="number"
-                value={config.minimumTokenBalance}
-                onChange={(e) =>
-                  updateMinimumBalance(parseInt(e.target.value) || 0)
-                }
-                className="w-full max-w-md px-4 py-2 border rounded-lg"
-                min="0"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Visitors need at least {config.minimumTokenBalance.toLocaleString()} {TOKEN_NAME} tokens to access the gallery
-              </p>
             </div>
           </div>
 
