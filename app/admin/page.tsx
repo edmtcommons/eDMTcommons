@@ -344,7 +344,7 @@ export default function AdminPage() {
       <main className="min-h-screen bg-gray-100 p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold">Gallery Management</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Gallery Management</h1>
             <div className="flex items-center gap-4">
               {saving && (
                 <div className="flex items-center gap-2 text-blue-600">
@@ -377,11 +377,11 @@ export default function AdminPage() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Add Video Form */}
             <div className="lg:col-span-1 bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4">Add New Video</h2>
+              <h2 className="text-2xl font-semibold mb-4 text-gray-900">Add New Video</h2>
               
               {/* Video Type Selection */}
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Video Type</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">Video Type</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -420,35 +420,35 @@ export default function AdminPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Title *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">Title *</label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
-                    className="w-full px-4 py-2 border rounded-lg"
+                    className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
                     placeholder="Video title"
                   />
                 </div>
 
                 {videoType === 'youtube' ? (
-                  <>
+                    <>
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label className="block text-sm font-medium mb-2 text-gray-700">
                         YouTube URL *
                       </label>
                       <input
                         type="url"
                         value={formData.url}
                         onChange={(e) => handleYouTubeUrlChange(e.target.value)}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
                         placeholder="https://youtube.com/watch?v=..."
                       />
                     </div>
                     {formData.thumbnail && (
                       <div>
-                        <label className="block text-sm font-medium mb-2">Thumbnail Preview</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-700">Thumbnail Preview</label>
                         <img
                           src={formData.thumbnail}
                           alt="Thumbnail preview"
@@ -460,7 +460,7 @@ export default function AdminPage() {
                 ) : (
                   <>
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label className="block text-sm font-medium mb-2 text-gray-700">
                         Video File *
                       </label>
                       <input
@@ -468,7 +468,7 @@ export default function AdminPage() {
                         type="file"
                         accept="video/*"
                         onChange={handleVideoFileChange}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
                       />
                       {formData.videoFile && (
                         <p className="text-xs text-gray-500 mt-1">
@@ -477,7 +477,7 @@ export default function AdminPage() {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label className="block text-sm font-medium mb-2 text-gray-700">
                         Thumbnail Image *
                       </label>
                       <input
@@ -485,7 +485,7 @@ export default function AdminPage() {
                         type="file"
                         accept="image/*"
                         onChange={handleThumbnailFileChange}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
                       />
                       {formData.thumbnail && (
                         <div className="mt-2">
@@ -510,7 +510,7 @@ export default function AdminPage() {
                     }
                     className="w-4 h-4"
                   />
-                  <label htmlFor="membersOnly" className="text-sm font-medium">
+                  <label htmlFor="membersOnly" className="text-sm font-medium text-gray-700">
                     Members Only (requires minimum token balance)
                   </label>
                 </div>
@@ -526,7 +526,7 @@ export default function AdminPage() {
 
             {/* Video List with Reordering */}
             <div className="lg:col-span-2 bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-900">
                 Current Videos ({videos.length})
               </h2>
               
@@ -574,7 +574,7 @@ export default function AdminPage() {
                       {/* Video Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-sm truncate">{video.title}</p>
+                          <p className="font-medium text-sm truncate text-gray-900">{video.title}</p>
                           <span className="text-xs px-2 py-0.5 rounded bg-gray-200 text-gray-600">
                             {video.type === 'youtube' ? 'YouTube' : 'Uploaded'}
                           </span>
@@ -596,7 +596,7 @@ export default function AdminPage() {
                         <button
                           onClick={() => handleMoveUp(index)}
                           disabled={index === 0}
-                          className="p-1 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-1 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
                           title="Move up"
                         >
                           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -606,7 +606,7 @@ export default function AdminPage() {
                         <button
                           onClick={() => handleMoveDown(index)}
                           disabled={index === videos.length - 1}
-                          className="p-1 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-1 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
                           title="Move down"
                         >
                           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
