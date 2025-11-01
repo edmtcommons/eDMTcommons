@@ -109,24 +109,23 @@ Example configuration:
   - `wagmi.ts` - Wagmi/RainbowKit configuration
   - `constants.ts` - Application constants
 - `/data` - Configuration files
-  - `config.json` - Token gate and token contract configuration
+  - `config.json` - Token gate and token contract configuration (version-controlled)
   - `lifi-config.json` - LiFi widget appearance and behavior settings
-  - `videos.json` - Video gallery metadata
+  - Note: Videos data is stored in Vercel Blob Storage, not in the filesystem
 - `/public` - Static assets
 
 ## Managing Content
 
-1. Visit `/admin` to access the management interface
-2. **Update Token Threshold**: Change the minimum token balance in the configuration section
-3. **Add Videos**: Add videos with title, URL, and optional thumbnail
-4. Copy the generated JSON for either config or videos
-5. Replace the contents of `data/config.json` or `data/videos.json` with the new JSON
-6. Commit and push to GitHub
+1. Visit `/admin` to access the management interface (requires whitelisted wallet address)
+2. **Add Videos**: Add YouTube videos or upload video files with title, thumbnail, and members-only settings
+3. **Reorder Videos**: Drag and drop or use arrow buttons to reorder videos
+4. **Delete Videos**: Remove videos from the gallery
+5. Click "Save Changes" to persist all modifications to Vercel Blob Storage
 
-Changes to the configuration will automatically update throughout the application:
-- Token gate logic uses the new threshold
-- Access denied messages show the correct required amount
-- Admin interface displays the current threshold
+Changes are saved automatically to Vercel Blob Storage:
+- Videos are stored in Blob Storage (not in the codebase)
+- Config settings remain in `data/config.json` (version-controlled)
+- The gallery page automatically fetches the latest videos from Blob Storage
 - LiFi widget reflects theme and appearance changes
 
 ## Deployment

@@ -1,11 +1,48 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { TokenGate } from '@/components/TokenGate';
 import { VideoGallery } from '@/components/VideoGallery';
-import videosData from '@/data/videos.json';
+
+interface Video {
+  id: string;
+  title: string;
+  url: string;
+  thumbnail: string;
+  addedDate: string;
+  membersOnly: boolean;
+  type?: 'youtube' | 'uploaded';
+}
 
 export default function GalleryPage() {
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const response = await fetch('/api/videos');
+        const data = await response.json();
+        
+        if (response.ok && data.videos) {
+          setVideos(data.videos);
+        } else {
+          console.error('Failed to fetch videos:', data.error);
+          // Fallback to empty array
+          setVideos([]);
+        }
+      } catch (error) {
+        console.error('Error fetching videos:', error);
+        setVideos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVideos();
+  }, []);
+
   return (
     <main className="min-h-screen w-full overflow-hidden relative pb-24">
       {/* Background - Static images with overlay */}
@@ -20,7 +57,13 @@ export default function GalleryPage() {
       
       <Header />
       <TokenGate>
-        <VideoGallery videos={videosData.videos} />
+        {loading ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-white text-lg">Loading videos...</div>
+          </div>
+        ) : (
+          <VideoGallery videos={videos} />
+        )}
       </TokenGate>
     </main>
   );

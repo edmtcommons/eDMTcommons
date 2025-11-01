@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import videosData from '@/data/videos.json';
 import { AdminGate } from '@/components/AdminGate';
 
 type VideoType = 'youtube' | 'uploaded';
@@ -19,12 +18,8 @@ interface Video {
 
 export default function AdminPage() {
   const { address } = useAccount();
-  const [videos, setVideos] = useState<Video[]>(
-    videosData.videos.map((v) => ({
-      ...v,
-      type: (v as any).type || 'youtube' as VideoType,
-    }))
-  );
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
   const [videoType, setVideoType] = useState<VideoType>('youtube');
   const [formData, setFormData] = useState({
     title: '',
@@ -38,6 +33,34 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const videoFileRef = useRef<HTMLInputElement>(null);
   const thumbnailFileRef = useRef<HTMLInputElement>(null);
+
+  // Fetch videos on mount
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const response = await fetch('/api/videos');
+        const data = await response.json();
+        
+        if (response.ok && data.videos) {
+          setVideos(data.videos.map((v: any) => ({
+            ...v,
+            type: (v.type || 'youtube') as VideoType,
+          })));
+        } else {
+          console.error('Failed to fetch videos:', data.error);
+          // Fallback to empty array
+          setVideos([]);
+        }
+      } catch (error) {
+        console.error('Error fetching videos:', error);
+        setVideos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVideos();
+  }, []);
 
   const extractVideoId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -279,6 +302,16 @@ export default function AdminPage() {
         return;
       }
 
+      // Refresh videos from server after successful save
+      const response = await fetch('/api/videos');
+      const data = await response.json();
+      if (response.ok && data.videos) {
+        setVideos(data.videos.map((v: any) => ({
+          ...v,
+          type: (v.type || 'youtube') as VideoType,
+        })));
+      }
+
       alert('All changes saved successfully!');
     } catch (error) {
       console.error('Error saving changes:', error);
@@ -318,6 +351,11 @@ export default function AdminPage() {
           </div>
 
           {/* Video Management */}
+          {loading ? (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-gray-600 text-lg">Loading videos...</div>
+            </div>
+          ) : (
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Add Video Form */}
             <div className="lg:col-span-1 bg-white rounded-lg shadow-lg p-6">
@@ -575,6 +613,7 @@ export default function AdminPage() {
               )}
             </div>
           </div>
+          )}
         </div>
       </main>
     </AdminGate>

@@ -7,30 +7,16 @@ In serverless environments (like Vercel), the filesystem is read-only, which pre
 ## Solution
 
 The app automatically detects the environment and uses:
-- **File storage** for local development (writes to `data/*.json` and `public/uploads/*`)
-- **Vercel KV** for JSON data in production (videos, config)
-- **Vercel Blob Storage** for binary files in production (uploaded videos, thumbnails)
+- **File storage** for local development (writes to `data/config.json` and `public/uploads/*`)
+- **Vercel Blob Storage** for videos data and binary files in production (uploaded videos, thumbnails)
+
+Note: `config.json` is always stored in the filesystem and version-controlled. Videos data is stored in Vercel Blob Storage.
 
 ## Setup Instructions
 
 ### Option 1: Vercel Storage (Recommended for Production)
 
-#### A. Vercel KV for JSON Data (videos.json, config.json)
-
-1. **Create a Vercel KV Database:**
-   - Go to your Vercel dashboard
-   - Navigate to your project
-   - Go to "Storage" tab
-   - Click "Create Database"
-   - Select "KV" (Key-Value store)
-   - Create the database
-
-2. **Get Environment Variables:**
-   - After creating the KV database, Vercel will automatically add these to your project:
-     - `KV_URL`
-     - `KV_REST_API_TOKEN`
-
-#### B. Vercel Blob Storage for Files (uploaded videos, thumbnails)
+#### A. Vercel Blob Storage for Videos Data and Files (uploaded videos, thumbnails)
 
 1. **Create a Vercel Blob Store:**
    - Go to your Vercel dashboard
@@ -49,16 +35,21 @@ The app automatically detects the environment and uses:
    npm install @vercel/blob
    ```
 
-4. **Redeploy:**
+4. **Set Environment Variable Locally:**
+   - Create a `.env.local` file in your project root
+   - Add: `BLOB_READ_WRITE_TOKEN=your_token_here`
+
+5. **Redeploy:**
    - The environment variables will be available on your next deployment
    - No code changes needed - the app automatically detects and uses the appropriate storage
 
 ### Option 2: Local Development
 
-For local development (`npm run dev`), file storage works automatically. The app will:
-- Write to `data/videos.json` and `data/config.json` directly
-- Save uploaded files to `public/uploads/videos/` and `public/uploads/thumbnails/`
-- No additional setup required
+For local development (`npm run dev`), the app will:
+- Read/write `config.json` from `data/config.json` (version-controlled)
+- Read/write videos data from Vercel Blob Storage (if `BLOB_READ_WRITE_TOKEN` is set) or fall back to file system
+- Save uploaded files to `public/uploads/videos/` and `public/uploads/thumbnails/` (local) or Blob Storage (if configured)
+- No additional setup required if using file storage fallback
 
 ### Option 3: Force File Storage
 
@@ -71,9 +62,13 @@ But this will only work if your deployment environment allows file writes.
 
 ## How It Works
 
-### JSON Data (videos.json, config.json)
-- **Local:** Writes directly to `data/*.json` files
-- **Production:** Stores in Vercel KV with keys `videos` and `config`
+### Videos Data
+- **Local/Production:** Stored in Vercel Blob Storage when `BLOB_READ_WRITE_TOKEN` is configured
+- **Local Fallback:** Falls back to file system storage if Blob is not configured
+
+### Config Data (config.json)
+- **Always:** Stored in `data/config.json` (version-controlled, never in Blob)
+- **Note:** Config cannot be modified via the admin panel in serverless environments
 
 ### Binary Files (uploaded videos, thumbnails)
 - **Local:** Saves to `public/uploads/videos/` and `public/uploads/thumbnails/`
@@ -81,24 +76,20 @@ But this will only work if your deployment environment allows file writes.
 
 ## Migration
 
-If you're migrating from file storage to KV/Blob:
+If you're migrating from file storage to Blob:
 
-1. The app will automatically read from files initially
+1. The app will automatically read from files initially (if Blob is not configured)
 2. When you save via the admin panel:
-   - JSON data goes to KV (if configured)
+   - Videos data goes to Blob Storage (if configured)
    - Files go to Blob Storage (if configured)
-3. Subsequent reads will come from KV/Blob
+3. Subsequent reads will come from Blob Storage
+4. Config always remains in the filesystem (`data/config.json`)
 
 ## Troubleshooting
 
 ### Error: "EROFS: read-only file system"
 - This means you're in a serverless environment without storage configured
 - Set up Vercel KV and Blob Storage (see Option 1 above)
-
-### Error: "KV storage is not configured"
-- Set `KV_URL` and `KV_REST_API_TOKEN` environment variables
-- For Vercel: These are automatically added when you create a KV database
-- For other platforms: You need to set them manually
 
 ### Error: "Cannot upload files in serverless environment"
 - Set `BLOB_READ_WRITE_TOKEN` environment variable
