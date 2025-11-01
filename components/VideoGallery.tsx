@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Image from 'next/image';
 
+type VideoType = 'youtube' | 'uploaded';
+
 interface Video {
   id: string;
   title: string;
@@ -10,6 +12,7 @@ interface Video {
   thumbnail: string;
   addedDate: string;
   membersOnly: boolean;
+  type?: VideoType;
 }
 
 interface VideoGalleryProps {
@@ -41,6 +44,14 @@ export function VideoGallery({ videos }: VideoGalleryProps) {
   const getYouTubeEmbedUrl = (url: string) => {
     const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
     return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+  };
+
+  const isYouTubeVideo = (video: Video) => {
+    // Check if it's explicitly marked as YouTube or if the URL looks like YouTube
+    return video.type === 'youtube' || 
+           video.url.includes('youtube.com') || 
+           video.url.includes('youtu.be') ||
+           (!video.type && (video.url.includes('youtube.com') || video.url.includes('youtu.be')));
   };
 
   return (
@@ -180,13 +191,24 @@ export function VideoGallery({ videos }: VideoGalleryProps) {
               </div>
               
               {/* Video Player */}
-              <div className="relative h-[400px] w-full md:h-[500px] lg:h-[678px] lg:w-[1231px] max-w-full overflow-hidden pointer-events-none">
-                <iframe
-                  src={getYouTubeEmbedUrl(selectedVideo.url)}
-                  className="absolute left-[-1.66%] w-[104.53%] h-[104.53%] top-[-2.26%]"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+              <div className="relative h-[400px] w-full md:h-[500px] lg:h-[678px] lg:w-[1231px] max-w-full overflow-hidden">
+                {isYouTubeVideo(selectedVideo) ? (
+                  <iframe
+                    src={getYouTubeEmbedUrl(selectedVideo.url)}
+                    className="absolute left-[-1.66%] w-[104.53%] h-[104.53%] top-[-2.26%] pointer-events-none"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video
+                    src={selectedVideo.url}
+                    controls
+                    className="w-full h-full object-contain bg-black rounded-lg"
+                    style={{ pointerEvents: 'auto' }}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                )}
               </div>
               
               {/* Video Info */}

@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import videosData from '@/data/videos.json';
 import configData from '@/data/config.json';
 import { GALLERY_CONFIG, TOKEN_NAME } from '@/lib/constants';
 import { AdminGate } from '@/components/AdminGate';
+
+type VideoType = 'youtube' | 'uploaded';
 
 interface Video {
   id: string;
@@ -13,60 +15,29 @@ interface Video {
   thumbnail: string;
   addedDate: string;
   membersOnly: boolean;
+  type: VideoType;
 }
 
 export default function AdminPage() {
-  const [videos, setVideos] = useState<Video[]>(videosData.videos);
+  const [videos, setVideos] = useState<Video[]>(
+    videosData.videos.map((v) => ({
+      ...v,
+      type: (v as any).type || 'youtube' as VideoType,
+    }))
+  );
   const [config, setConfig] = useState(configData);
+  const [videoType, setVideoType] = useState<VideoType>('youtube');
   const [formData, setFormData] = useState({
     title: '',
     url: '',
     thumbnail: '',
     membersOnly: false,
+    videoFile: null as File | null,
+    thumbnailFile: null as File | null,
   });
-  const [jsonOutput, setJsonOutput] = useState('');
-  const [configJsonOutput, setConfigJsonOutput] = useState('');
-
-  const updateConfigJsonOutput = useCallback((configData: typeof config) => {
-    setConfigJsonOutput(JSON.stringify(configData, null, 2));
-  }, []);
-
-  const updateJsonOutput = (videosList: Video[]) => {
-    const jsonData = {
-      videos: videosList,
-    };
-    setJsonOutput(JSON.stringify(jsonData, null, 2));
-  };
-
-  useEffect(() => {
-    updateJsonOutput(videos);
-    updateConfigJsonOutput(config);
-  }, [videos, config, updateConfigJsonOutput]);
-
-  const handleAdd = () => {
-    if (!formData.title || !formData.url) {
-      alert('Please fill in title and URL');
-      return;
-    }
-
-    const newVideo: Video = {
-      id: String(videos.length + 1),
-      title: formData.title,
-      url: formData.url,
-      thumbnail: formData.thumbnail || `https://i.ytimg.com/vi/${extractVideoId(formData.url)}/hqdefault.jpg`,
-      addedDate: new Date().toISOString().split('T')[0],
-      membersOnly: formData.membersOnly,
-    };
-
-    const updatedVideos = [...videos, newVideo];
-    setVideos(updatedVideos);
-    setFormData({ title: '', url: '', thumbnail: '', membersOnly: false });
-  };
-
-  const handleDelete = (id: string) => {
-    const updatedVideos = videos.filter((v) => v.id !== id);
-    setVideos(updatedVideos);
-  };
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const videoFileRef = useRef<HTMLInputElement>(null);
+  const thumbnailFileRef = useRef<HTMLInputElement>(null);
 
   const extractVideoId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -74,14 +45,146 @@ export default function AdminPage() {
     return match && match[2].length === 11 ? match[2] : '';
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(jsonOutput);
-    alert('JSON copied to clipboard! You can now paste it into data/videos.json');
+  const getYouTubeThumbnail = (url: string) => {
+    const videoId = extractVideoId(url);
+    if (videoId) {
+      return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+    }
+    return '';
   };
 
-  const handleConfigCopy = () => {
-    navigator.clipboard.writeText(configJsonOutput);
-    alert('Config JSON copied to clipboard! You can now paste it into data/config.json');
+  const handleYouTubeUrlChange = (url: string) => {
+    setFormData({ ...formData, url, thumbnail: getYouTubeThumbnail(url) });
+  };
+
+  const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFormData({ ...formData, videoFile: e.target.files[0], url: '' });
+    }
+  };
+
+  const handleThumbnailFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      // Create a preview URL for the thumbnail
+      const thumbnailUrl = URL.createObjectURL(file);
+      setFormData({ ...formData, thumbnailFile: file, thumbnail: thumbnailUrl });
+    }
+  };
+
+  const handleAdd = () => {
+    if (!formData.title) {
+      alert('Please fill in the video title');
+      return;
+    }
+
+    if (videoType === 'youtube') {
+      if (!formData.url) {
+        alert('Please provide a YouTube URL');
+        return;
+      }
+      
+      const videoId = extractVideoId(formData.url);
+      if (!videoId) {
+        alert('Invalid YouTube URL');
+        return;
+      }
+
+      const newVideo: Video = {
+        id: String(Date.now()),
+        title: formData.title,
+        url: formData.url,
+        thumbnail: formData.thumbnail || getYouTubeThumbnail(formData.url),
+        addedDate: new Date().toISOString().split('T')[0],
+        membersOnly: formData.membersOnly,
+        type: 'youtube',
+      };
+
+      setVideos([...videos, newVideo]);
+      setFormData({ title: '', url: '', thumbnail: '', membersOnly: false, videoFile: null, thumbnailFile: null });
+      
+      // Reset file inputs
+      if (videoFileRef.current) videoFileRef.current.value = '';
+      if (thumbnailFileRef.current) thumbnailFileRef.current.value = '';
+    } else {
+      if (!formData.videoFile) {
+        alert('Please upload a video file');
+        return;
+      }
+
+      // For uploaded videos, we'll store the file name/path
+      // In production, you'd upload to a storage service and get a URL
+      const videoFileName = formData.videoFile.name;
+      const thumbnailFileName = formData.thumbnailFile?.name || '';
+      
+      // Create preview URLs (in production, these would be actual URLs)
+      const videoUrl = `/uploads/videos/${videoFileName}`;
+      const thumbnailUrl = formData.thumbnail || (formData.thumbnailFile ? `/uploads/thumbnails/${thumbnailFileName}` : '');
+
+      const newVideo: Video = {
+        id: String(Date.now()),
+        title: formData.title,
+        url: videoUrl,
+        thumbnail: thumbnailUrl,
+        addedDate: new Date().toISOString().split('T')[0],
+        membersOnly: formData.membersOnly,
+        type: 'uploaded',
+      };
+
+      setVideos([...videos, newVideo]);
+      setFormData({ title: '', url: '', thumbnail: '', membersOnly: false, videoFile: null, thumbnailFile: null });
+      
+      // Reset file inputs
+      if (videoFileRef.current) videoFileRef.current.value = '';
+      if (thumbnailFileRef.current) thumbnailFileRef.current.value = '';
+      
+      // Revoke object URLs to free memory
+      if (formData.thumbnail) {
+        URL.revokeObjectURL(formData.thumbnail);
+      }
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this video?')) {
+      setVideos(videos.filter((v) => v.id !== id));
+    }
+  };
+
+  const handleMoveUp = (index: number) => {
+    if (index === 0) return;
+    const newVideos = [...videos];
+    [newVideos[index - 1], newVideos[index]] = [newVideos[index], newVideos[index - 1]];
+    setVideos(newVideos);
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index === videos.length - 1) return;
+    const newVideos = [...videos];
+    [newVideos[index], newVideos[index + 1]] = [newVideos[index + 1], newVideos[index]];
+    setVideos(newVideos);
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null) return;
+
+    if (draggedIndex !== index) {
+      const newVideos = [...videos];
+      const draggedVideo = newVideos[draggedIndex];
+      newVideos.splice(draggedIndex, 1);
+      newVideos.splice(index, 0, draggedVideo);
+      setVideos(newVideos);
+      setDraggedIndex(index);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
   };
 
   const updateMinimumBalance = (newBalance: number) => {
@@ -92,13 +195,12 @@ export default function AdminPage() {
   return (
     <AdminGate>
       <main className="min-h-screen bg-gray-100 p-8">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Gallery Management</h1>
 
-        {/* Config Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Gallery Configuration</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          {/* Config Section */}
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 className="text-2xl font-semibold mb-4">Gallery Configuration</h2>
             <div>
               <label className="block text-sm font-medium mb-2">
                 Minimum Token Balance ({TOKEN_NAME})
@@ -109,157 +211,275 @@ export default function AdminPage() {
                 onChange={(e) =>
                   updateMinimumBalance(parseInt(e.target.value) || 0)
                 }
-                className="w-full px-4 py-2 border rounded-lg"
+                className="w-full max-w-md px-4 py-2 border rounded-lg"
                 min="0"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Current value: {config.minimumTokenBalance.toLocaleString()} {TOKEN_NAME} tokens required for gallery access
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium mb-2">Config JSON</h3>
-              <textarea
-                value={configJsonOutput}
-                readOnly
-                className="w-full h-32 px-4 py-2 border rounded-lg font-mono text-xs"
-              />
-              <button
-                onClick={handleConfigCopy}
-                className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
-              >
-                Copy Config JSON
-              </button>
-              <p className="text-xs text-gray-500 mt-2">
-                Replace contents of <code className="bg-gray-100 px-1 rounded">data/config.json</code>
+                Visitors need at least {config.minimumTokenBalance.toLocaleString()} {TOKEN_NAME} tokens to access the gallery
               </p>
             </div>
           </div>
-        </div>
 
-        {/* Video Management */}
-        <h2 className="text-2xl font-semibold mb-4">Video Gallery Management</h2>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Form */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4">Add New Video</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Title</label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border rounded-lg"
-                  placeholder="Video title"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  YouTube URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.url}
-                  onChange={(e) =>
-                    setFormData({ ...formData, url: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border rounded-lg"
-                  placeholder="https://youtube.com/watch?v=..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Thumbnail URL (optional)
-                </label>
-                <input
-                  type="url"
-                  value={formData.thumbnail}
-                  onChange={(e) =>
-                    setFormData({ ...formData, thumbnail: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border rounded-lg"
-                  placeholder="Auto-generated if empty"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="membersOnly"
-                  checked={formData.membersOnly}
-                  onChange={(e) =>
-                    setFormData({ ...formData, membersOnly: e.target.checked })
-                  }
-                  className="w-4 h-4"
-                />
-                <label htmlFor="membersOnly" className="text-sm font-medium">
-                  Members Only
-                </label>
-              </div>
-              <button
-                onClick={handleAdd}
-                className="w-full bg-primary hover:bg-primary-dark text-white py-3 px-6 rounded-lg transition-colors"
-              >
-                Add Video
-              </button>
-            </div>
-
-            {/* Video List */}
-            <div className="mt-8">
-              <h3 className="text-xl font-semibold mb-4">
-                Current Videos ({videos.length})
-              </h3>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {videos.map((video) => (
-                  <div
-                    key={video.id}
-                    className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+          {/* Video Management */}
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Add Video Form */}
+            <div className="lg:col-span-1 bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-semibold mb-4">Add New Video</h2>
+              
+              {/* Video Type Selection */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Video Type</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVideoType('youtube');
+                      setFormData({ title: '', url: '', thumbnail: '', membersOnly: false, videoFile: null, thumbnailFile: null });
+                      if (videoFileRef.current) videoFileRef.current.value = '';
+                      if (thumbnailFileRef.current) thumbnailFileRef.current.value = '';
+                    }}
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                      videoType === 'youtube'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
                   >
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{video.title}</p>
-                      {video.membersOnly && (
-                        <span className="text-xs text-purple-600">
-                          Members Only
-                        </span>
+                    YouTube
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVideoType('uploaded');
+                      setFormData({ title: '', url: '', thumbnail: '', membersOnly: false, videoFile: null, thumbnailFile: null });
+                      if (videoFileRef.current) videoFileRef.current.value = '';
+                      if (thumbnailFileRef.current) thumbnailFileRef.current.value = '';
+                    }}
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                      videoType === 'uploaded'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Upload Video
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Title *</label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border rounded-lg"
+                    placeholder="Video title"
+                  />
+                </div>
+
+                {videoType === 'youtube' ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        YouTube URL *
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.url}
+                        onChange={(e) => handleYouTubeUrlChange(e.target.value)}
+                        className="w-full px-4 py-2 border rounded-lg"
+                        placeholder="https://youtube.com/watch?v=..."
+                      />
+                    </div>
+                    {formData.thumbnail && (
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Thumbnail Preview</label>
+                        <img
+                          src={formData.thumbnail}
+                          alt="Thumbnail preview"
+                          className="w-full h-32 object-cover rounded-lg border"
+                        />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Video File *
+                      </label>
+                      <input
+                        ref={videoFileRef}
+                        type="file"
+                        accept="video/*"
+                        onChange={handleVideoFileChange}
+                        className="w-full px-4 py-2 border rounded-lg"
+                      />
+                      {formData.videoFile && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Selected: {formData.videoFile.name}
+                        </p>
                       )}
                     </div>
-                    <button
-                      onClick={() => handleDelete(video.id)}
-                      className="text-red-600 hover:text-red-800 ml-4"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                ))}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Thumbnail Image *
+                      </label>
+                      <input
+                        ref={thumbnailFileRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleThumbnailFileChange}
+                        className="w-full px-4 py-2 border rounded-lg"
+                      />
+                      {formData.thumbnail && (
+                        <div className="mt-2">
+                          <img
+                            src={formData.thumbnail}
+                            alt="Thumbnail preview"
+                            className="w-full h-32 object-cover rounded-lg border"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="membersOnly"
+                    checked={formData.membersOnly}
+                    onChange={(e) =>
+                      setFormData({ ...formData, membersOnly: e.target.checked })
+                    }
+                    className="w-4 h-4"
+                  />
+                  <label htmlFor="membersOnly" className="text-sm font-medium">
+                    Members Only (requires minimum token balance)
+                  </label>
+                </div>
+
+                <button
+                  onClick={handleAdd}
+                  className="w-full bg-primary hover:bg-primary-dark text-white py-3 px-6 rounded-lg transition-colors"
+                >
+                  Add Video
+                </button>
               </div>
             </div>
-          </div>
 
-          {/* JSON Output */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4">JSON Output</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Copy this JSON and replace the contents of{' '}
-              <code className="bg-gray-100 px-2 py-1 rounded">data/videos.json</code>
-            </p>
-            <textarea
-              value={jsonOutput}
-              readOnly
-              className="w-full h-96 px-4 py-2 border rounded-lg font-mono text-xs"
-            />
-            <button
-              onClick={handleCopy}
-              className="mt-4 w-full bg-primary hover:bg-primary-dark text-white py-3 px-6 rounded-lg transition-colors"
-            >
-              Copy JSON
-            </button>
+            {/* Video List with Reordering */}
+            <div className="lg:col-span-2 bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-semibold mb-4">
+                Current Videos ({videos.length})
+              </h2>
+              
+              {videos.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">
+                  No videos added yet. Add your first video using the form on the left.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {videos.map((video, index) => (
+                    <div
+                      key={video.id}
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragEnd={handleDragEnd}
+                      className={`flex items-center gap-4 bg-gray-50 p-4 rounded-lg border-2 transition-colors ${
+                        draggedIndex === index ? 'border-blue-500 bg-blue-50' : 'border-transparent'
+                      } cursor-move`}
+                    >
+                      {/* Drag Handle */}
+                      <div className="flex flex-col gap-1 text-gray-400">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                          <circle cx="2" cy="2" r="1.5" />
+                          <circle cx="6" cy="2" r="1.5" />
+                          <circle cx="10" cy="2" r="1.5" />
+                          <circle cx="2" cy="6" r="1.5" />
+                          <circle cx="6" cy="6" r="1.5" />
+                          <circle cx="10" cy="6" r="1.5" />
+                          <circle cx="2" cy="10" r="1.5" />
+                          <circle cx="6" cy="10" r="1.5" />
+                          <circle cx="10" cy="10" r="1.5" />
+                        </svg>
+                      </div>
+
+                      {/* Thumbnail */}
+                      <div className="w-20 h-14 rounded overflow-hidden flex-shrink-0">
+                        <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
+                      {/* Video Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium text-sm truncate">{video.title}</p>
+                          <span className="text-xs px-2 py-0.5 rounded bg-gray-200 text-gray-600">
+                            {video.type === 'youtube' ? 'YouTube' : 'Uploaded'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {video.membersOnly && (
+                            <span className="text-xs text-purple-600 font-medium">
+                              Members Only
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-500">
+                            {video.addedDate}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Reorder Buttons */}
+                      <div className="flex flex-col gap-1">
+                        <button
+                          onClick={() => handleMoveUp(index)}
+                          disabled={index === 0}
+                          className="p-1 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Move up"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 4l-4 4h8L8 4z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleMoveDown(index)}
+                          disabled={index === videos.length - 1}
+                          className="p-1 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Move down"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 12l4-4H4l4 4z" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => handleDelete(video.id)}
+                        className="text-red-600 hover:text-red-800 p-2 rounded hover:bg-red-50 transition-colors"
+                        title="Delete video"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M6.5 2a.5.5 0 00-.5.5v1h8v-1a.5.5 0 00-.5-.5h-7zM4 4.5v12a1.5 1.5 0 001.5 1.5h7a1.5 1.5 0 001.5-1.5v-12H4zm2 2v9a.5.5 0 001 0v-9a.5.5 0 00-1 0zm4 0v9a.5.5 0 001 0v-9a.5.5 0 00-1 0z" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
     </AdminGate>
   );
 }
-
