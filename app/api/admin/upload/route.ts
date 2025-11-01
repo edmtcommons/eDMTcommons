@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir, readFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { existsSync } from 'fs';
+import { uploadFileToStorage } from '@/lib/storage';
 
 async function verifyAdmin(walletAddress: string): Promise<boolean> {
   try {
@@ -59,35 +59,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', type === 'video' ? 'videos' : 'thumbnails');
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
+    // Upload file using storage utility (handles both file and blob storage)
+    try {
+      const url = await uploadFileToStorage(file, type as 'video' | 'thumbnail');
+      
+      // Extract filename from URL for response
+      const filename = url.split('/').pop() || `${Date.now()}-${file.name}`;
+
+      return NextResponse.json({
+        success: true,
+        url: url,
+        filename: filename,
+      });
+    } catch (storageError: any) {
+      // If it's a read-only filesystem error, provide helpful guidance
+      if (storageError?.code === 'EROFS' || storageError?.message?.includes('read-only')) {
+        return NextResponse.json(
+          { 
+            error: 'Cannot upload files in serverless environment. ' +
+                   'Please configure Vercel Blob Storage by setting BLOB_READ_WRITE_TOKEN environment variable, ' +
+                   'or use local file storage in development mode.',
+            code: 'EROFS'
+          },
+          { status: 500 }
+        );
+      }
+      throw storageError;
     }
-
-    // Generate unique filename
-    const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop();
-    const filename = `${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const filePath = join(uploadsDir, filename);
-
-    // Convert file to buffer and write
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
-
-    // Return the public URL
-    const publicUrl = `/uploads/${type === 'video' ? 'videos' : 'thumbnails'}/${filename}`;
-
-    return NextResponse.json({
-      success: true,
-      url: publicUrl,
-      filename: filename,
-    });
   } catch (error) {
     console.error('Error uploading file:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to upload file' },
+      { error: `Failed to upload file: ${errorMessage}` },
       { status: 500 }
     );
   }

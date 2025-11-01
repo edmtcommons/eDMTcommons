@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, readFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { readData, saveData } from '@/lib/storage';
 
 async function verifyAdmin(walletAddress: string): Promise<boolean> {
   try {
@@ -49,9 +50,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Read current config to preserve adminWhitelist
-    const configPath = join(process.cwd(), 'data', 'config.json');
-    const configFile = await readFile(configPath, 'utf-8');
-    const currentConfig = JSON.parse(configFile);
+    let currentConfig;
+    try {
+      currentConfig = await readData('config');
+    } catch (error) {
+      // Fallback to reading from file if KV is not configured
+      const configPath = join(process.cwd(), 'data', 'config.json');
+      const configFile = await readFile(configPath, 'utf-8');
+      currentConfig = JSON.parse(configFile);
+    }
 
     // Merge with existing config to preserve adminWhitelist
     const updatedConfig = {
@@ -60,9 +67,24 @@ export async function POST(request: NextRequest) {
       adminWhitelist: currentConfig.adminWhitelist, // Always preserve whitelist
     };
 
-    // Write to config.json
-    const jsonContent = JSON.stringify(updatedConfig, null, 2);
-    await writeFile(configPath, jsonContent, 'utf-8');
+    // Save using storage utility
+    try {
+      await saveData('config', updatedConfig);
+    } catch (storageError: any) {
+      // If it's a read-only filesystem error, provide helpful guidance
+      if (storageError?.code === 'EROFS' || storageError?.message?.includes('read-only')) {
+        return NextResponse.json(
+          { 
+            error: 'Cannot write to filesystem in serverless environment. ' +
+                   'Please configure Vercel KV storage by setting KV_URL and KV_REST_API_TOKEN environment variables, ' +
+                   'or use local file storage in development mode.',
+            code: 'EROFS'
+          },
+          { status: 500 }
+        );
+      }
+      throw storageError;
+    }
 
     return NextResponse.json({
       success: true,
