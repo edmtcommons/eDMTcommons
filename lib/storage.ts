@@ -42,6 +42,7 @@ async function saveToBlob(key: string, data: any): Promise<void> {
     const blob = await put(`data/${key}.json`, buffer, {
       access: 'public',
       contentType: 'application/json',
+      allowOverwrite: true, // Allow overwriting existing blobs
     });
     
     // Cache the URL for future reads
