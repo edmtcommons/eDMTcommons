@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
+import { writeFile, mkdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
-import configData from '@/data/config.json';
 
 async function verifyAdmin(walletAddress: string): Promise<boolean> {
-  const normalizedWhitelist = (configData.adminWhitelist || []).map((addr: string) =>
-    addr.toLowerCase()
-  );
-  return normalizedWhitelist.includes(walletAddress.toLowerCase());
+  try {
+    const configPath = join(process.cwd(), 'data', 'config.json');
+    const configFile = await readFile(configPath, 'utf-8');
+    const configData = JSON.parse(configFile);
+    
+    const normalizedWhitelist = (configData.adminWhitelist || []).map((addr: string) =>
+      addr.toLowerCase()
+    );
+    return normalizedWhitelist.includes(walletAddress.toLowerCase());
+  } catch (error) {
+    console.error('Error reading config for admin verification:', error);
+    return false;
+  }
 }
 
 export async function POST(request: NextRequest) {

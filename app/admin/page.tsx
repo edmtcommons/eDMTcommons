@@ -318,19 +318,21 @@ export default function AdminPage() {
       // Save videos
       const videosSaved = await saveVideos(videos);
       if (!videosSaved) {
+        setSaving(false);
         return;
       }
 
       // Save config
       const configSaved = await saveConfig(config);
       if (!configSaved) {
+        setSaving(false);
         return;
       }
 
       alert('All changes saved successfully!');
     } catch (error) {
       console.error('Error saving changes:', error);
-      alert('Failed to save changes');
+      alert(`Failed to save changes: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setSaving(false);
     }

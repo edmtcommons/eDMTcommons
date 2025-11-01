@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, readFile } from 'fs/promises';
 import { join } from 'path';
-import configData from '@/data/config.json';
 
 async function verifyAdmin(walletAddress: string): Promise<boolean> {
-  const normalizedWhitelist = (configData.adminWhitelist || []).map((addr: string) =>
-    addr.toLowerCase()
-  );
-  return normalizedWhitelist.includes(walletAddress.toLowerCase());
+  try {
+    const configPath = join(process.cwd(), 'data', 'config.json');
+    const configFile = await readFile(configPath, 'utf-8');
+    const configData = JSON.parse(configFile);
+    
+    const normalizedWhitelist = (configData.adminWhitelist || []).map((addr: string) =>
+      addr.toLowerCase()
+    );
+    return normalizedWhitelist.includes(walletAddress.toLowerCase());
+  } catch (error) {
+    console.error('Error reading config for admin verification:', error);
+    return false;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -47,7 +55,8 @@ export async function POST(request: NextRequest) {
 
     // Write to videos.json
     const filePath = join(process.cwd(), 'data', 'videos.json');
-    await writeFile(filePath, JSON.stringify(videosData, null, 2), 'utf-8');
+    const jsonContent = JSON.stringify(videosData, null, 2);
+    await writeFile(filePath, jsonContent, 'utf-8');
 
     return NextResponse.json({
       success: true,
@@ -55,8 +64,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error saving videos:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to save videos' },
+      { error: `Failed to save videos: ${errorMessage}` },
       { status: 500 }
     );
   }
