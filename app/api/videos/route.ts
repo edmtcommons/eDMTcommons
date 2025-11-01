@@ -1,10 +1,18 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { readData } from '@/lib/storage';
 
-export async function GET() {
+// Disable caching for this route to ensure fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export async function GET(request: NextRequest) {
   try {
-    console.log('Fetching videos from storage...');
-    const videosData = await readData('videos', false);
+    // Check if force refresh is requested via query parameter
+    const url = new URL(request.url);
+    const forceRefresh = url.searchParams.get('forceRefresh') === 'true';
+    
+    console.log('Fetching videos from storage...', forceRefresh ? '(force refresh)' : '');
+    const videosData = await readData('videos', forceRefresh);
     console.log('Videos data retrieved:', videosData ? 'success' : 'empty', videosData?.videos?.length || 0, 'videos');
     
     // Ensure we return the data in the expected format

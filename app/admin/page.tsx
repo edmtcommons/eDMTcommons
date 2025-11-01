@@ -307,8 +307,10 @@ export default function AdminPage() {
         return;
       }
 
-      // Refresh videos from server after successful save
-      const response = await fetch('/api/videos');
+      // Refresh videos from server after successful save with force refresh
+      const response = await fetch('/api/videos?forceRefresh=true', {
+        cache: 'no-store', // Prevent browser caching
+      });
       const data = await response.json();
       if (response.ok && data.videos) {
         setVideos(data.videos.map((v: any) => ({

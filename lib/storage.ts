@@ -55,7 +55,9 @@ async function saveToBlob(key: string, data: any): Promise<void> {
       allowOverwrite: true, // Allow overwriting existing blobs
     });
     
-    // Cache the URL for future reads (and clear any old cache)
+    // Clear cache before setting new URL to ensure fresh reads
+    blobUrlCache.delete(key);
+    // Cache the URL for future reads
     blobUrlCache.set(key, blob.url);
     console.log(`Saved ${key} to Blob storage at: ${blob.url}, pathname: data/${key}.json`);
   } catch (error) {
@@ -108,8 +110,16 @@ async function readFromBlob(key: string): Promise<any> {
       }
     }
     
-    // Fetch the blob content using the URL
-    const response = await fetch(blobUrl);
+    // Fetch the blob content using the URL with cache-busting headers
+    // Add timestamp to bypass CDN/browser cache for fresh reads
+    const cacheBustUrl = `${blobUrl}?t=${Date.now()}`;
+    const response = await fetch(cacheBustUrl, {
+      cache: 'no-store', // Prevent Next.js fetch caching
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+      },
+    });
     if (!response.ok) {
       throw new Error(`Failed to fetch blob: ${response.statusText}`);
     }
