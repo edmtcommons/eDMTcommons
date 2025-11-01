@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useAccount } from 'wagmi';
 import videosData from '@/data/videos.json';
 import configData from '@/data/config.json';
 import { GALLERY_CONFIG, TOKEN_NAME } from '@/lib/constants';
@@ -19,6 +20,7 @@ interface Video {
 }
 
 export default function AdminPage() {
+  const { address } = useAccount();
   const [videos, setVideos] = useState<Video[]>(
     videosData.videos.map((v) => ({
       ...v,
@@ -36,6 +38,7 @@ export default function AdminPage() {
     thumbnailFile: null as File | null,
   });
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
   const videoFileRef = useRef<HTMLInputElement>(null);
   const thumbnailFileRef = useRef<HTMLInputElement>(null);
 
@@ -51,6 +54,107 @@ export default function AdminPage() {
       return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
     }
     return '';
+  };
+
+  const saveVideos = async (videosToSave: Video[]) => {
+    if (!address) {
+      alert('Wallet not connected');
+      return false;
+    }
+
+    try {
+      setSaving(true);
+      const response = await fetch('/api/admin/videos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videos: videosToSave,
+          walletAddress: address,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save videos');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error saving videos:', error);
+      alert(`Failed to save videos: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveConfig = async (configToSave: typeof configData) => {
+    if (!address) {
+      alert('Wallet not connected');
+      return false;
+    }
+
+    try {
+      setSaving(true);
+      const response = await fetch('/api/admin/config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          config: configToSave,
+          walletAddress: address,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save config');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error saving config:', error);
+      alert(`Failed to save config: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const uploadFile = async (file: File, type: 'video' | 'thumbnail'): Promise<string | null> => {
+    if (!address) {
+      alert('Wallet not connected');
+      return null;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type);
+      formData.append('walletAddress', address);
+
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to upload file');
+      }
+
+      return data.url;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert(`Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return null;
+    }
   };
 
   const handleYouTubeUrlChange = (url: string) => {
@@ -72,7 +176,7 @@ export default function AdminPage() {
     }
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!formData.title) {
       alert('Please fill in the video title');
       return;
@@ -100,7 +204,9 @@ export default function AdminPage() {
         type: 'youtube',
       };
 
-      setVideos([...videos, newVideo]);
+      const updatedVideos = [...videos, newVideo];
+      setVideos(updatedVideos);
+
       setFormData({ title: '', url: '', thumbnail: '', membersOnly: false, videoFile: null, thumbnailFile: null });
       
       // Reset file inputs
@@ -112,14 +218,17 @@ export default function AdminPage() {
         return;
       }
 
-      // For uploaded videos, we'll store the file name/path
-      // In production, you'd upload to a storage service and get a URL
-      const videoFileName = formData.videoFile.name;
-      const thumbnailFileName = formData.thumbnailFile?.name || '';
-      
-      // Create preview URLs (in production, these would be actual URLs)
-      const videoUrl = `/uploads/videos/${videoFileName}`;
-      const thumbnailUrl = formData.thumbnail || (formData.thumbnailFile ? `/uploads/thumbnails/${thumbnailFileName}` : '');
+      if (!formData.thumbnailFile) {
+        alert('Please upload a thumbnail image');
+        return;
+      }
+
+      // Upload files first (but don't save videos to JSON yet)
+      const videoUrl = await uploadFile(formData.videoFile, 'video');
+      if (!videoUrl) return;
+
+      const thumbnailUrl = await uploadFile(formData.thumbnailFile, 'thumbnail');
+      if (!thumbnailUrl) return;
 
       const newVideo: Video = {
         id: String(Date.now()),
@@ -131,7 +240,9 @@ export default function AdminPage() {
         type: 'uploaded',
       };
 
-      setVideos([...videos, newVideo]);
+      const updatedVideos = [...videos, newVideo];
+      setVideos(updatedVideos);
+
       setFormData({ title: '', url: '', thumbnail: '', membersOnly: false, videoFile: null, thumbnailFile: null });
       
       // Reset file inputs
@@ -139,16 +250,19 @@ export default function AdminPage() {
       if (thumbnailFileRef.current) thumbnailFileRef.current.value = '';
       
       // Revoke object URLs to free memory
-      if (formData.thumbnail) {
+      if (formData.thumbnail && formData.thumbnail.startsWith('blob:')) {
         URL.revokeObjectURL(formData.thumbnail);
       }
     }
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this video?')) {
-      setVideos(videos.filter((v) => v.id !== id));
+    if (!confirm('Are you sure you want to delete this video?')) {
+      return;
     }
+
+    const updatedVideos = videos.filter((v) => v.id !== id);
+    setVideos(updatedVideos);
   };
 
   const handleMoveUp = (index: number) => {
@@ -192,11 +306,64 @@ export default function AdminPage() {
     setConfig(updatedConfig);
   };
 
+  const handleSaveAll = async () => {
+    if (!address) {
+      alert('Wallet not connected');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      
+      // Save videos
+      const videosSaved = await saveVideos(videos);
+      if (!videosSaved) {
+        return;
+      }
+
+      // Save config
+      const configSaved = await saveConfig(config);
+      if (!configSaved) {
+        return;
+      }
+
+      alert('All changes saved successfully!');
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      alert('Failed to save changes');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <AdminGate>
       <main className="min-h-screen bg-gray-100 p-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Gallery Management</h1>
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-3xl font-bold">Gallery Management</h1>
+            <div className="flex items-center gap-4">
+              {saving && (
+                <div className="flex items-center gap-2 text-blue-600">
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span className="text-sm">Saving...</span>
+                </div>
+              )}
+              <button
+                onClick={handleSaveAll}
+                disabled={saving}
+                className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Save Changes
+              </button>
+            </div>
+          </div>
 
           {/* Config Section */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
