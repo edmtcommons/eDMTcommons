@@ -35,13 +35,13 @@ npm run dev
 ## Configuration
 
 - **RainbowKit Project ID**: `d06eb4d17620a3c3f24d2ca8c45d6b31`
-- **eDMT Token Contract**: Configured in `data/config.json`
-- **Minimum Balance**: Configurable in `data/config.json` (default: 1 eDMT token)
+- **eDMT Token Contract**: Configured in `config.json`
+- **Minimum Balance**: Configurable in `config.json` (default: 1 eDMT token)
 - **LiFi Widget Config**: Configured in `data/lifi-config.json`
 
 ### Customizing the Token Gate Threshold
 
-Edit `data/config.json` to change the minimum token balance required for gallery access and configure token/chain settings:
+Edit `config.json` to change the minimum token balance required for gallery access and configure token/chain settings:
 
 ```json
 {
@@ -109,10 +109,10 @@ Example configuration:
   - `wagmi.ts` - Wagmi/RainbowKit configuration
   - `constants.ts` - Application constants
 - `/data` - Configuration files
-  - `config.json` - Token gate and token contract configuration (version-controlled)
   - `lifi-config.json` - LiFi widget appearance and behavior settings
   - Note: Videos data is stored in Vercel Blob Storage, not in the filesystem
 - `/public` - Static assets
+- `config.json` - Token gate and token contract configuration (version-controlled)
 
 ## Managing Content
 
@@ -124,7 +124,7 @@ Example configuration:
 
 Changes are saved automatically to Vercel Blob Storage:
 - Videos are stored in Blob Storage (not in the codebase)
-- Config settings remain in `data/config.json` (version-controlled)
+- Config settings remain in `config.json` (version-controlled)
 - The gallery page automatically fetches the latest videos from Blob Storage
 - LiFi widget reflects theme and appearance changes
 

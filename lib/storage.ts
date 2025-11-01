@@ -15,18 +15,28 @@ function isServerlessEnvironment(): boolean {
 
 // File-based storage (for local development fallback)
 async function saveToFile(key: string, data: any): Promise<void> {
-  const filePath = join(process.cwd(), 'data', `${key}.json`);
+  const filePath = join(process.cwd(), `${key}.json`);
   await writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
 async function readFromFile(key: string): Promise<any> {
-  const filePath = join(process.cwd(), 'data', `${key}.json`);
+  const filePath = join(process.cwd(), `${key}.json`);
   const content = await readFile(filePath, 'utf-8');
   return JSON.parse(content);
 }
 
 // Store blob URLs in memory cache (for reading)
+// Note: Cache is per-instance, may be cleared on serverless restarts
 const blobUrlCache = new Map<string, string>();
+
+// Clear cache for a specific key (useful for forcing refresh)
+function clearBlobCache(key?: string) {
+  if (key) {
+    blobUrlCache.delete(key);
+  } else {
+    blobUrlCache.clear();
+  }
+}
 
 // Blob-based storage (primary storage method)
 async function saveToBlob(key: string, data: any): Promise<void> {
@@ -45,8 +55,9 @@ async function saveToBlob(key: string, data: any): Promise<void> {
       allowOverwrite: true, // Allow overwriting existing blobs
     });
     
-    // Cache the URL for future reads
+    // Cache the URL for future reads (and clear any old cache)
     blobUrlCache.set(key, blob.url);
+    console.log(`Saved ${key} to Blob storage at: ${blob.url}, pathname: data/${key}.json`);
   } catch (error) {
     console.error('Error saving to Blob storage:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -67,14 +78,33 @@ async function readFromBlob(key: string): Promise<any> {
     
     if (!blobUrl) {
       // Use list to find the blob by pathname
-      const blobs = await list({ prefix: 'data/' });
-      const matchingBlob = blobs.blobs.find(b => b.pathname === blobPath);
+      // Try exact path first, then broader search
+      let blobs = await list({ prefix: blobPath });
+      let matchingBlob = blobs.blobs.find(b => b.pathname === blobPath);
+      
+      // If not found, try listing all blobs with data/ prefix
+      if (!matchingBlob) {
+        blobs = await list({ prefix: 'data/' });
+        matchingBlob = blobs.blobs.find(b => b.pathname === blobPath);
+      }
+      
+      // Also try matching by the key name in the pathname
+      if (!matchingBlob) {
+        matchingBlob = blobs.blobs.find(b => 
+          b.pathname.includes(`${key}.json`) || 
+          b.pathname.endsWith(`${key}.json`) ||
+          b.pathname === `data/${key}.json`
+        );
+      }
       
       if (matchingBlob) {
         blobUrl = matchingBlob.url;
         blobUrlCache.set(key, blobUrl);
+        console.log(`Found blob for ${key} at pathname: ${matchingBlob.pathname}, URL: ${blobUrl}`);
       } else {
-        throw new Error(`Key ${key} not found in Blob storage`);
+        // Log available blobs for debugging
+        console.log(`Available blobs with prefix 'data/':`, blobs.blobs.map(b => b.pathname));
+        throw new Error(`Key ${key} not found in Blob storage. Expected path: ${blobPath}`);
       }
     }
     
@@ -145,22 +175,32 @@ export async function saveData(key: string, data: any): Promise<void> {
   }
 }
 
-export async function readData(key: string): Promise<any> {
+export async function readData(key: string, forceRefresh: boolean = false): Promise<any> {
   // Config is always read from file system, never from Blob
   if (key === 'config') {
     return await readFromFile(key);
   }
   
+  // Clear cache if force refresh is requested
+  if (forceRefresh) {
+    blobUrlCache.delete(key);
+  }
+  
   // For other keys (like videos), try Blob first if configured
   if (isBlobConfigured()) {
     try {
-      return await readFromBlob(key);
+      const data = await readFromBlob(key);
+      console.log(`Successfully read ${key} from Blob storage`);
+      return data;
     } catch (blobError: any) {
+      console.error(`Blob read failed for ${key}:`, blobError.message);
       // If Blob read fails and we're not in serverless, try file fallback
       if (!isServerlessEnvironment()) {
         console.warn(`Blob read failed for ${key}, falling back to file storage:`, blobError.message);
         try {
-          return await readFromFile(key);
+          const fileData = await readFromFile(key);
+          console.log(`Successfully read ${key} from file storage (fallback)`);
+          return fileData;
         } catch (fileError: any) {
           // If file read also fails, throw with helpful message
           throw new Error(
@@ -174,6 +214,7 @@ export async function readData(key: string): Promise<any> {
   }
   
   // If Blob is not configured, use file storage
+  console.log(`Blob not configured, reading ${key} from file storage`);
   return await readFromFile(key);
 }
 

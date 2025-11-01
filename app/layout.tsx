@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
 import { Providers } from './providers';
-import configData from '@/data/config.json';
+import configData from '@/config.json';
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Footer } from '@/components/Footer';

@@ -38,21 +38,26 @@ export default function AdminPage() {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
+        console.log('Admin: Fetching videos from /api/videos...');
         const response = await fetch('/api/videos');
         const data = await response.json();
         
+        console.log('Admin: Videos API response:', { ok: response.ok, hasVideos: !!data.videos, videoCount: data.videos?.length, error: data.error });
+        
         if (response.ok && data.videos) {
-          setVideos(data.videos.map((v: any) => ({
+          const mappedVideos = data.videos.map((v: any) => ({
             ...v,
             type: (v.type || 'youtube') as VideoType,
-          })));
+          }));
+          setVideos(mappedVideos);
+          console.log(`Admin: Loaded ${mappedVideos.length} videos`);
         } else {
-          console.error('Failed to fetch videos:', data.error);
+          console.error('Admin: Failed to fetch videos:', data.error || 'Unknown error', data);
           // Fallback to empty array
           setVideos([]);
         }
       } catch (error) {
-        console.error('Error fetching videos:', error);
+        console.error('Admin: Error fetching videos:', error);
         setVideos([]);
       } finally {
         setLoading(false);

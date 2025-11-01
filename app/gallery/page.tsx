@@ -22,13 +22,17 @@ export default function GalleryPage() {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
+        console.log('Fetching videos from /api/videos...');
         const response = await fetch('/api/videos');
         const data = await response.json();
         
+        console.log('Videos API response:', { ok: response.ok, hasVideos: !!data.videos, videoCount: data.videos?.length, error: data.error });
+        
         if (response.ok && data.videos) {
           setVideos(data.videos);
+          console.log(`Loaded ${data.videos.length} videos`);
         } else {
-          console.error('Failed to fetch videos:', data.error);
+          console.error('Failed to fetch videos:', data.error || 'Unknown error', data);
           // Fallback to empty array
           setVideos([]);
         }

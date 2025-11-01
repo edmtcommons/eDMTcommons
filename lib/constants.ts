@@ -1,5 +1,5 @@
 import { base } from 'viem/chains';
-import configData from '@/data/config.json';
+import configData from '@/config.json';
 
 export const TOKEN_NAME = configData.tokenName;
 export const EDMT_TOKEN_ADDRESS = configData.tokenAddress as `0x${string}`;

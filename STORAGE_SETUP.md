@@ -7,7 +7,7 @@ In serverless environments (like Vercel), the filesystem is read-only, which pre
 ## Solution
 
 The app automatically detects the environment and uses:
-- **File storage** for local development (writes to `data/config.json` and `public/uploads/*`)
+- **File storage** for local development (writes to `config.json` and `public/uploads/*`)
 - **Vercel Blob Storage** for videos data and binary files in production (uploaded videos, thumbnails)
 
 Note: `config.json` is always stored in the filesystem and version-controlled. Videos data is stored in Vercel Blob Storage.
@@ -46,7 +46,7 @@ Note: `config.json` is always stored in the filesystem and version-controlled. V
 ### Option 2: Local Development
 
 For local development (`npm run dev`), the app will:
-- Read/write `config.json` from `data/config.json` (version-controlled)
+- Read/write `config.json` from the root directory (version-controlled)
 - Read/write videos data from Vercel Blob Storage (if `BLOB_READ_WRITE_TOKEN` is set) or fall back to file system
 - Save uploaded files to `public/uploads/videos/` and `public/uploads/thumbnails/` (local) or Blob Storage (if configured)
 - No additional setup required if using file storage fallback
@@ -67,7 +67,7 @@ But this will only work if your deployment environment allows file writes.
 - **Local Fallback:** Falls back to file system storage if Blob is not configured
 
 ### Config Data (config.json)
-- **Always:** Stored in `data/config.json` (version-controlled, never in Blob)
+- **Always:** Stored in `config.json` (version-controlled, never in Blob)
 - **Note:** Config cannot be modified via the admin panel in serverless environments
 
 ### Binary Files (uploaded videos, thumbnails)
@@ -83,7 +83,7 @@ If you're migrating from file storage to Blob:
    - Videos data goes to Blob Storage (if configured)
    - Files go to Blob Storage (if configured)
 3. Subsequent reads will come from Blob Storage
-4. Config always remains in the filesystem (`data/config.json`)
+4. Config always remains in the filesystem (`config.json`)
 
 ## Troubleshooting
 
