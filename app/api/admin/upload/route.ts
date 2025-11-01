@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
-import { uploadFileToStorage } from '@/lib/storage';
+import { readData, uploadFileToStorage } from '@/lib/storage';
 
 async function verifyAdmin(walletAddress: string): Promise<boolean> {
   try {
-    const configPath = join(process.cwd(), 'data', 'config.json');
-    const configFile = await readFile(configPath, 'utf-8');
-    const configData = JSON.parse(configFile);
+    const configData = await readData('config');
     
     const normalizedWhitelist = (configData.adminWhitelist || []).map((addr: string) =>
       addr.toLowerCase()

@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
-import { saveData } from '@/lib/storage';
+import { readData, saveData } from '@/lib/storage';
 
 async function verifyAdmin(walletAddress: string): Promise<boolean> {
   try {
-    const configPath = join(process.cwd(), 'data', 'config.json');
-    const configFile = await readFile(configPath, 'utf-8');
-    const configData = JSON.parse(configFile);
+    const configData = await readData('config');
     
     const normalizedWhitelist = (configData.adminWhitelist || []).map((addr: string) =>
       addr.toLowerCase()
@@ -54,7 +50,7 @@ export async function POST(request: NextRequest) {
       videos: videos.map(({ type, ...video }: any) => video),
     };
 
-    // Save using storage utility (handles both file and KV storage)
+    // Save using storage utility (uses Blob when configured)
     try {
       await saveData('videos', videosData);
     } catch (storageError: any) {
@@ -63,8 +59,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { 
             error: 'Cannot write to filesystem in serverless environment. ' +
-                   'Please configure Vercel KV storage by setting KV_URL and KV_REST_API_TOKEN environment variables, ' +
-                   'or use local file storage in development mode.',
+                   'Please configure Vercel Blob storage by setting BLOB_READ_WRITE_TOKEN environment variable.',
             code: 'EROFS'
           },
           { status: 500 }

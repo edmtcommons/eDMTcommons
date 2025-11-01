@@ -10,99 +10,146 @@ function isBlobConfigured(): boolean {
 // Check if we're in a serverless/read-only environment
 function isServerlessEnvironment(): boolean {
   // Vercel and most serverless environments set these environment variables
-  // Only check for actual serverless environment indicators, not just NODE_ENV
   return !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 }
 
-// Check if KV is configured
-function isKVConfigured(): boolean {
-  return !!process.env.KV_URL && !!process.env.KV_REST_API_TOKEN;
-}
-
-// File-based storage (for local development)
-export async function saveToFile(key: string, data: any): Promise<void> {
+// File-based storage (for local development fallback)
+async function saveToFile(key: string, data: any): Promise<void> {
   const filePath = join(process.cwd(), 'data', `${key}.json`);
   await writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-export async function readFromFile(key: string): Promise<any> {
+async function readFromFile(key: string): Promise<any> {
   const filePath = join(process.cwd(), 'data', `${key}.json`);
   const content = await readFile(filePath, 'utf-8');
   return JSON.parse(content);
 }
 
-// KV-based storage (for production)
-export async function saveToKV(key: string, data: any): Promise<void> {
-  if (!isKVConfigured()) {
-    throw new Error('KV storage is not configured. Please set KV_URL and KV_REST_API_TOKEN environment variables.');
+// Store blob URLs in memory cache (for reading)
+const blobUrlCache = new Map<string, string>();
+
+// Blob-based storage (primary storage method)
+async function saveToBlob(key: string, data: any): Promise<void> {
+  if (!isBlobConfigured()) {
+    throw new Error('Blob storage is not configured. Please set BLOB_READ_WRITE_TOKEN environment variable.');
   }
   
-  // Dynamic import to avoid errors if @vercel/kv is not installed
-  const kv = await import('@vercel/kv');
-  await kv.kv.set(key, JSON.stringify(data));
+  try {
+    const { put } = await import('@vercel/blob');
+    const jsonString = JSON.stringify(data, null, 2);
+    const buffer = Buffer.from(jsonString, 'utf-8');
+    
+    const blob = await put(`data/${key}.json`, buffer, {
+      access: 'public',
+      contentType: 'application/json',
+    });
+    
+    // Cache the URL for future reads
+    blobUrlCache.set(key, blob.url);
+  } catch (error) {
+    console.error('Error saving to Blob storage:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to save to Blob storage: ${errorMessage}`);
+  }
 }
 
-export async function readFromKV(key: string): Promise<any> {
-  if (!isKVConfigured()) {
-    throw new Error('KV storage is not configured. Please set KV_URL and KV_REST_API_TOKEN environment variables.');
+async function readFromBlob(key: string): Promise<any> {
+  if (!isBlobConfigured()) {
+    throw new Error('Blob storage is not configured. Please set BLOB_READ_WRITE_TOKEN environment variable.');
   }
   
-  const kv = await import('@vercel/kv');
-  const data = await kv.kv.get<string>(key);
-  if (!data) {
-    throw new Error(`Key ${key} not found in KV storage`);
+  try {
+    const { list } = await import('@vercel/blob');
+    
+    const blobPath = `data/${key}.json`;
+    let blobUrl: string | null = blobUrlCache.get(key) || null;
+    
+    if (!blobUrl) {
+      // Use list to find the blob by pathname
+      const blobs = await list({ prefix: 'data/' });
+      const matchingBlob = blobs.blobs.find(b => b.pathname === blobPath);
+      
+      if (matchingBlob) {
+        blobUrl = matchingBlob.url;
+        blobUrlCache.set(key, blobUrl);
+      } else {
+        throw new Error(`Key ${key} not found in Blob storage`);
+      }
+    }
+    
+    // Fetch the blob content using the URL
+    const response = await fetch(blobUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch blob: ${response.statusText}`);
+    }
+    const text = await response.text();
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('Error reading from Blob storage:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to read from Blob storage: ${errorMessage}`);
   }
-  return JSON.parse(data);
 }
 
-// Universal storage that works in both environments
+// Universal storage that uses Blob when available, falls back to file system
 export async function saveData(key: string, data: any): Promise<void> {
-  // Try file storage first (for local dev)
+  // Always try Blob first if configured
+  if (isBlobConfigured()) {
+    try {
+      await saveToBlob(key, data);
+      return;
+    } catch (blobError: any) {
+      // If Blob fails and we're not in serverless, try file fallback
+      if (!isServerlessEnvironment()) {
+        console.warn('Blob save failed, falling back to file storage:', blobError.message);
+        await saveToFile(key, data);
+        return;
+      }
+      // In serverless, Blob is required
+      throw blobError;
+    }
+  }
+  
+  // If Blob is not configured, use file storage (local development only)
   if (!isServerlessEnvironment()) {
     try {
       await saveToFile(key, data);
       return;
     } catch (fileError: any) {
-      // If file write fails with EROFS, try KV if available
-      if (fileError?.code === 'EROFS' && isKVConfigured()) {
-        await saveToKV(key, data);
-        return;
+      // If file write fails with EROFS, suggest Blob configuration
+      if (fileError?.code === 'EROFS') {
+        throw new Error(
+          'Cannot write to filesystem. Please configure Vercel Blob storage by setting BLOB_READ_WRITE_TOKEN environment variable.'
+        );
       }
-      // Otherwise rethrow the error
       throw fileError;
     }
-  }
-  
-  // In serverless environment, use KV
-  if (isKVConfigured()) {
-    await saveToKV(key, data);
   } else {
-    // Try file storage as fallback even in serverless (might work in some environments)
-    try {
-      await saveToFile(key, data);
-    } catch (fileError: any) {
-      throw new Error(
-        'Cannot save data: Filesystem is read-only and KV storage is not configured. ' +
-        'Please set KV_URL and KV_REST_API_TOKEN environment variables for Vercel KV, ' +
-        'or ensure file system is writable for local development.'
-      );
-    }
+    // In serverless without Blob, we can't save
+    throw new Error(
+      'Blob storage is required in serverless environments. Please set BLOB_READ_WRITE_TOKEN environment variable.'
+    );
   }
 }
 
 export async function readData(key: string): Promise<any> {
-  if (isServerlessEnvironment()) {
-    if (isKVConfigured()) {
-      return await readFromKV(key);
-    } else {
-      throw new Error(
-        'Production environment detected but KV storage is not configured. ' +
-        'Please set up Vercel KV or use local file storage in development.'
-      );
+  // Try Blob first if configured
+  if (isBlobConfigured()) {
+    try {
+      return await readFromBlob(key);
+    } catch (blobError: any) {
+      // If Blob read fails and we're not in serverless, try file fallback
+      if (!isServerlessEnvironment()) {
+        console.warn('Blob read failed, falling back to file storage:', blobError.message);
+        return await readFromFile(key);
+      }
+      // In serverless, rethrow the error
+      throw blobError;
     }
-  } else {
-    return await readFromFile(key);
   }
+  
+  // If Blob is not configured, use file storage
+  return await readFromFile(key);
 }
 
 // File upload functions (for binary files like videos and images)
@@ -111,12 +158,11 @@ export async function uploadFileToStorage(
   type: 'video' | 'thumbnail'
 ): Promise<string> {
   const timestamp = Date.now();
-  const fileExtension = file.name.split('.').pop();
   const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
   const filename = `${timestamp}-${sanitizedName}`;
 
-  if (isServerlessEnvironment() && isBlobConfigured()) {
-    // Use Vercel Blob Storage in production
+  // Always try Blob first if configured
+  if (isBlobConfigured()) {
     try {
       const { put } = await import('@vercel/blob');
       const bytes = await file.arrayBuffer();
@@ -130,11 +176,20 @@ export async function uploadFileToStorage(
       return blob.url;
     } catch (error) {
       console.error('Error uploading to Blob storage:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Failed to upload file to Blob storage: ${errorMessage}`);
+      // If Blob fails and we're not in serverless, try file fallback
+      if (!isServerlessEnvironment()) {
+        console.warn('Blob upload failed, falling back to file storage');
+        // Continue to file storage fallback below
+      } else {
+        // In serverless, Blob is required
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to upload file to Blob storage: ${errorMessage}`);
+      }
     }
-  } else {
-    // Use local file system for development
+  }
+  
+  // Fallback to local file system (local development only)
+  if (!isServerlessEnvironment()) {
     try {
       const uploadsDir = join(process.cwd(), 'public', 'uploads', type === 'video' ? 'videos' : 'thumbnails');
       if (!existsSync(uploadsDir)) {
@@ -150,12 +205,19 @@ export async function uploadFileToStorage(
       // Return the public URL
       return `/uploads/${type === 'video' ? 'videos' : 'thumbnails'}/${filename}`;
     } catch (fileError: any) {
-      // If file write fails with EROFS and Blob is available, try Blob
-      if (fileError?.code === 'EROFS' && isBlobConfigured()) {
-        return await uploadFileToStorage(file, type);
+      // If file write fails with EROFS, suggest Blob configuration
+      if (fileError?.code === 'EROFS') {
+        throw new Error(
+          'Cannot write to filesystem. Please configure Vercel Blob storage by setting BLOB_READ_WRITE_TOKEN environment variable.'
+        );
       }
       throw new Error(`Failed to upload file: ${fileError?.message || 'Unknown error'}`);
     }
+  } else {
+    // In serverless without Blob, we can't upload
+    throw new Error(
+      'Blob storage is required in serverless environments. Please set BLOB_READ_WRITE_TOKEN environment variable.'
+    );
   }
 }
 
