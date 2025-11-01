@@ -31,6 +31,7 @@ export default function AdminPage() {
   });
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [fetchingTitle, setFetchingTitle] = useState(false);
   const videoFileRef = useRef<HTMLInputElement>(null);
   const thumbnailFileRef = useRef<HTMLInputElement>(null);
 
@@ -84,6 +85,23 @@ export default function AdminPage() {
       return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
     }
     return '';
+  };
+
+  const fetchYouTubeTitle = async (url: string): Promise<string | null> => {
+    try {
+      // Use server-side API route to avoid CORS issues
+      const response = await fetch(`/api/admin/youtube-title?url=${encodeURIComponent(url)}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch video information');
+      }
+      
+      const data = await response.json();
+      return data.title || null;
+    } catch (error) {
+      console.error('Error fetching YouTube title:', error);
+      return null;
+    }
   };
 
   const saveVideos = async (videosToSave: Video[]) => {
@@ -152,8 +170,27 @@ export default function AdminPage() {
     }
   };
 
-  const handleYouTubeUrlChange = (url: string) => {
-    setFormData({ ...formData, url, thumbnail: getYouTubeThumbnail(url) });
+  const handleYouTubeUrlChange = async (url: string) => {
+    // Update URL and thumbnail immediately
+    setFormData({ ...formData, url, thumbnail: getYouTubeThumbnail(url), title: '' });
+    
+    // Fetch title if URL is valid
+    const videoId = extractVideoId(url);
+    if (videoId) {
+      setFetchingTitle(true);
+      try {
+        const title = await fetchYouTubeTitle(url);
+        if (title) {
+          setFormData(prev => ({ ...prev, title }));
+        } else {
+          console.warn('Could not fetch YouTube title');
+        }
+      } catch (error) {
+        console.error('Error fetching YouTube title:', error);
+      } finally {
+        setFetchingTitle(false);
+      }
+    }
   };
 
   const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,11 +209,6 @@ export default function AdminPage() {
   };
 
   const handleAdd = async () => {
-    if (!formData.title) {
-      alert('Please fill in the video title');
-      return;
-    }
-
     if (videoType === 'youtube') {
       if (!formData.url) {
         alert('Please provide a YouTube URL');
@@ -189,9 +221,31 @@ export default function AdminPage() {
         return;
       }
 
+      // If title is not set, fetch it now
+      let title = formData.title;
+      if (!title) {
+        setFetchingTitle(true);
+        try {
+          const fetchedTitle = await fetchYouTubeTitle(formData.url);
+          if (fetchedTitle) {
+            title = fetchedTitle;
+          } else {
+            alert('Could not fetch video title. Please try again or enter a title manually.');
+            setFetchingTitle(false);
+            return;
+          }
+        } catch (error) {
+          alert('Error fetching video title. Please try again or enter a title manually.');
+          setFetchingTitle(false);
+          return;
+        } finally {
+          setFetchingTitle(false);
+        }
+      }
+
       const newVideo: Video = {
         id: String(Date.now()),
-        title: formData.title,
+        title: title,
         url: formData.url,
         thumbnail: formData.thumbnail || getYouTubeThumbnail(formData.url),
         addedDate: new Date().toISOString().split('T')[0],
@@ -208,6 +262,12 @@ export default function AdminPage() {
       if (videoFileRef.current) videoFileRef.current.value = '';
       if (thumbnailFileRef.current) thumbnailFileRef.current.value = '';
     } else {
+      // For uploaded videos, title is required
+      if (!formData.title) {
+        alert('Please fill in the video title');
+        return;
+      }
+
       if (!formData.videoFile) {
         alert('Please upload a video file');
         return;
@@ -388,6 +448,7 @@ export default function AdminPage() {
                     onClick={() => {
                       setVideoType('youtube');
                       setFormData({ title: '', url: '', thumbnail: '', membersOnly: false, videoFile: null, thumbnailFile: null });
+                      setFetchingTitle(false);
                       if (videoFileRef.current) videoFileRef.current.value = '';
                       if (thumbnailFileRef.current) thumbnailFileRef.current.value = '';
                     }}
@@ -404,6 +465,7 @@ export default function AdminPage() {
                     onClick={() => {
                       setVideoType('uploaded');
                       setFormData({ title: '', url: '', thumbnail: '', membersOnly: false, videoFile: null, thumbnailFile: null });
+                      setFetchingTitle(false);
                       if (videoFileRef.current) videoFileRef.current.value = '';
                       if (thumbnailFileRef.current) thumbnailFileRef.current.value = '';
                     }}
@@ -419,18 +481,50 @@ export default function AdminPage() {
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700">Title *</label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
-                    placeholder="Video title"
-                  />
-                </div>
+                {/* Title field - only show for uploaded videos */}
+                {videoType === 'uploaded' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">Title *</label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) =>
+                        setFormData({ ...formData, title: e.target.value })
+                      }
+                      className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
+                      placeholder="Video title"
+                    />
+                  </div>
+                )}
+
+                {/* Title field for YouTube videos - auto-fetched but editable */}
+                {videoType === 'youtube' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      Title {fetchingTitle ? '(fetching...)' : '(auto-fetched from YouTube)'}
+                    </label>
+                    {fetchingTitle ? (
+                      <div className="w-full px-4 py-2 border rounded-lg bg-gray-50 flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="text-sm text-gray-600">Fetching title...</span>
+                      </div>
+                    ) : (
+                      <input
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) =>
+                          setFormData({ ...formData, title: e.target.value })
+                        }
+                        className="w-full px-4 py-2 border rounded-lg text-gray-900 bg-white"
+                        placeholder="Title will be fetched automatically from YouTube"
+                        readOnly={false}
+                      />
+                    )}
+                  </div>
+                )}
 
                 {videoType === 'youtube' ? (
                     <>
@@ -517,9 +611,20 @@ export default function AdminPage() {
 
                 <button
                   onClick={handleAdd}
-                  className="w-full bg-primary hover:bg-primary-dark text-white py-3 px-6 rounded-lg transition-colors"
+                  disabled={fetchingTitle}
+                  className="w-full bg-primary hover:bg-primary-dark text-white py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  Add Video
+                  {fetchingTitle ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Fetching title...</span>
+                    </>
+                  ) : (
+                    'Add Video'
+                  )}
                 </button>
               </div>
             </div>
