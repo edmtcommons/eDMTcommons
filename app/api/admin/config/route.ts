@@ -5,12 +5,25 @@ async function verifyAdmin(walletAddress: string): Promise<boolean> {
   try {
     const configData = await readData('config');
     
+    if (!configData || !configData.adminWhitelist) {
+      console.error('Config data is missing or adminWhitelist is not defined');
+      return false;
+    }
+    
     const normalizedWhitelist = (configData.adminWhitelist || []).map((addr: string) =>
       addr.toLowerCase()
     );
-    return normalizedWhitelist.includes(walletAddress.toLowerCase());
+    const normalizedAddress = walletAddress.toLowerCase();
+    const isAuthorized = normalizedWhitelist.includes(normalizedAddress);
+    
+    if (!isAuthorized) {
+      console.log(`Wallet ${normalizedAddress} not in whitelist. Whitelist contains:`, normalizedWhitelist);
+    }
+    
+    return isAuthorized;
   } catch (error) {
     console.error('Error reading config for admin verification:', error);
+    console.error('Error details:', error instanceof Error ? error.stack : error);
     return false;
   }
 }
@@ -55,16 +68,17 @@ export async function POST(request: NextRequest) {
       adminWhitelist: currentConfig.adminWhitelist, // Always preserve whitelist
     };
 
-    // Save using storage utility (uses Blob when configured)
+    // Save using storage utility (config always saves to file system)
     try {
       await saveData('config', updatedConfig);
     } catch (storageError: any) {
-      // If it's a read-only filesystem error, provide helpful guidance
-      if (storageError?.code === 'EROFS' || storageError?.message?.includes('read-only')) {
+      // If it's a read-only filesystem error or serverless environment, provide helpful guidance
+      if (storageError?.code === 'EROFS' || storageError?.message?.includes('read-only') || storageError?.message?.includes('serverless')) {
         return NextResponse.json(
           { 
-            error: 'Cannot write to filesystem in serverless environment. ' +
-                   'Please configure Vercel Blob storage by setting BLOB_READ_WRITE_TOKEN environment variable.',
+            error: 'Config cannot be saved in serverless environment. ' +
+                   'Config.json is version-controlled and must be deployed with the application. ' +
+                   'To update config, modify the file locally and redeploy.',
             code: 'EROFS'
           },
           { status: 500 }

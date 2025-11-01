@@ -92,8 +92,20 @@ async function readFromBlob(key: string): Promise<any> {
 }
 
 // Universal storage that uses Blob when available, falls back to file system
+// Note: 'config' key always uses file system, never Blob storage
 export async function saveData(key: string, data: any): Promise<void> {
-  // Always try Blob first if configured
+  // Config is always stored in file system, never in Blob
+  if (key === 'config') {
+    if (isServerlessEnvironment()) {
+      throw new Error(
+        'Config cannot be saved in serverless environment. Config.json must be managed through version control and deployed with the application.'
+      );
+    }
+    await saveToFile(key, data);
+    return;
+  }
+  
+  // For other keys (like videos), use Blob if configured
   if (isBlobConfigured()) {
     try {
       await saveToBlob(key, data);
@@ -105,7 +117,7 @@ export async function saveData(key: string, data: any): Promise<void> {
         await saveToFile(key, data);
         return;
       }
-      // In serverless, Blob is required
+      // In serverless, Blob is required for dynamic content
       throw blobError;
     }
   }
@@ -125,23 +137,35 @@ export async function saveData(key: string, data: any): Promise<void> {
       throw fileError;
     }
   } else {
-    // In serverless without Blob, we can't save
+    // In serverless without Blob, we can't save dynamic content
     throw new Error(
-      'Blob storage is required in serverless environments. Please set BLOB_READ_WRITE_TOKEN environment variable.'
+      'Blob storage is required in serverless environments for dynamic content. Please set BLOB_READ_WRITE_TOKEN environment variable.'
     );
   }
 }
 
 export async function readData(key: string): Promise<any> {
-  // Try Blob first if configured
+  // Config is always read from file system, never from Blob
+  if (key === 'config') {
+    return await readFromFile(key);
+  }
+  
+  // For other keys (like videos), try Blob first if configured
   if (isBlobConfigured()) {
     try {
       return await readFromBlob(key);
     } catch (blobError: any) {
       // If Blob read fails and we're not in serverless, try file fallback
       if (!isServerlessEnvironment()) {
-        console.warn('Blob read failed, falling back to file storage:', blobError.message);
-        return await readFromFile(key);
+        console.warn(`Blob read failed for ${key}, falling back to file storage:`, blobError.message);
+        try {
+          return await readFromFile(key);
+        } catch (fileError: any) {
+          // If file read also fails, throw with helpful message
+          throw new Error(
+            `Failed to read ${key} from both Blob storage (${blobError.message}) and file storage (${fileError.message})`
+          );
+        }
       }
       // In serverless, rethrow the error
       throw blobError;

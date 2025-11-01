@@ -5,12 +5,25 @@ async function verifyAdmin(walletAddress: string): Promise<boolean> {
   try {
     const configData = await readData('config');
     
+    if (!configData || !configData.adminWhitelist) {
+      console.error('Config data is missing or adminWhitelist is not defined');
+      return false;
+    }
+    
     const normalizedWhitelist = (configData.adminWhitelist || []).map((addr: string) =>
       addr.toLowerCase()
     );
-    return normalizedWhitelist.includes(walletAddress.toLowerCase());
+    const normalizedAddress = walletAddress.toLowerCase();
+    const isAuthorized = normalizedWhitelist.includes(normalizedAddress);
+    
+    if (!isAuthorized) {
+      console.log(`Wallet ${normalizedAddress} not in whitelist. Whitelist contains:`, normalizedWhitelist);
+    }
+    
+    return isAuthorized;
   } catch (error) {
     console.error('Error reading config for admin verification:', error);
+    console.error('Error details:', error instanceof Error ? error.stack : error);
     return false;
   }
 }
