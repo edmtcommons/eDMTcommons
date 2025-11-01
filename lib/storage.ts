@@ -49,17 +49,21 @@ async function saveToBlob(key: string, data: any): Promise<void> {
     const jsonString = JSON.stringify(data, null, 2);
     const buffer = Buffer.from(jsonString, 'utf-8');
     
+    // Clear cache BEFORE saving to ensure subsequent reads get fresh data
+    blobUrlCache.delete(key);
+    
     const blob = await put(`data/${key}.json`, buffer, {
       access: 'public',
       contentType: 'application/json',
       allowOverwrite: true, // Allow overwriting existing blobs
     });
     
-    // Clear cache before setting new URL to ensure fresh reads
-    blobUrlCache.delete(key);
-    // Cache the URL for future reads
-    blobUrlCache.set(key, blob.url);
+    // Don't cache the URL immediately - force re-list on next read to get latest
+    // This ensures we always check for the latest blob after a save
     console.log(`Saved ${key} to Blob storage at: ${blob.url}, pathname: data/${key}.json`);
+    
+    // Small delay to ensure blob is fully committed (CDN propagation)
+    await new Promise(resolve => setTimeout(resolve, 100));
   } catch (error) {
     console.error('Error saving to Blob storage:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -67,7 +71,7 @@ async function saveToBlob(key: string, data: any): Promise<void> {
   }
 }
 
-async function readFromBlob(key: string): Promise<any> {
+async function readFromBlob(key: string, forceRefresh: boolean = false): Promise<any> {
   if (!isBlobConfigured()) {
     throw new Error('Blob storage is not configured. Please set BLOB_READ_WRITE_TOKEN environment variable.');
   }
@@ -76,7 +80,13 @@ async function readFromBlob(key: string): Promise<any> {
     const { list } = await import('@vercel/blob');
     
     const blobPath = `data/${key}.json`;
-    let blobUrl: string | null = blobUrlCache.get(key) || null;
+    let blobUrl: string | null = null;
+    
+    // If force refresh, always re-list to get the latest blob metadata
+    // Otherwise, try to use cached URL first
+    if (!forceRefresh) {
+      blobUrl = blobUrlCache.get(key) || null;
+    }
     
     if (!blobUrl) {
       // Use list to find the blob by pathname
@@ -102,7 +112,7 @@ async function readFromBlob(key: string): Promise<any> {
       if (matchingBlob) {
         blobUrl = matchingBlob.url;
         blobUrlCache.set(key, blobUrl);
-        console.log(`Found blob for ${key} at pathname: ${matchingBlob.pathname}, URL: ${blobUrl}`);
+        console.log(`Found blob for ${key} at pathname: ${matchingBlob.pathname}, URL: ${blobUrl}${forceRefresh ? ' (force refresh)' : ''}`);
       } else {
         // Log available blobs for debugging
         console.log(`Available blobs with prefix 'data/':`, blobs.blobs.map(b => b.pathname));
@@ -110,14 +120,17 @@ async function readFromBlob(key: string): Promise<any> {
       }
     }
     
-    // Fetch the blob content using the URL with cache-busting headers
-    // Add timestamp to bypass CDN/browser cache for fresh reads
-    const cacheBustUrl = `${blobUrl}?t=${Date.now()}`;
+    // Fetch the blob content using the URL with aggressive cache-busting
+    // Use both query param and headers to ensure fresh content
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(7);
+    const cacheBustUrl = `${blobUrl}?t=${timestamp}&r=${random}`;
     const response = await fetch(cacheBustUrl, {
       cache: 'no-store', // Prevent Next.js fetch caching
       headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
         'Pragma': 'no-cache',
+        'Expires': '0',
       },
     });
     if (!response.ok) {
@@ -199,8 +212,8 @@ export async function readData(key: string, forceRefresh: boolean = false): Prom
   // For other keys (like videos), try Blob first if configured
   if (isBlobConfigured()) {
     try {
-      const data = await readFromBlob(key);
-      console.log(`Successfully read ${key} from Blob storage`);
+      const data = await readFromBlob(key, forceRefresh);
+      console.log(`Successfully read ${key} from Blob storage${forceRefresh ? ' (forced refresh)' : ''}`);
       return data;
     } catch (blobError: any) {
       console.error(`Blob read failed for ${key}:`, blobError.message);

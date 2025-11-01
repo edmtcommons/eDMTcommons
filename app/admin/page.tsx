@@ -39,7 +39,12 @@ export default function AdminPage() {
     const fetchVideos = async () => {
       try {
         console.log('Admin: Fetching videos from /api/videos...');
-        const response = await fetch('/api/videos');
+        const response = await fetch('/api/videos', {
+          cache: 'no-store', // Prevent browser caching
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+          },
+        });
         const data = await response.json();
         
         console.log('Admin: Videos API response:', { ok: response.ok, hasVideos: !!data.videos, videoCount: data.videos?.length, error: data.error });
@@ -307,9 +312,15 @@ export default function AdminPage() {
         return;
       }
 
+      // Wait a moment for blob to be fully committed, then refresh with force refresh
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
       // Refresh videos from server after successful save with force refresh
       const response = await fetch('/api/videos?forceRefresh=true', {
         cache: 'no-store', // Prevent browser caching
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
       });
       const data = await response.json();
       if (response.ok && data.videos) {

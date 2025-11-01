@@ -58,14 +58,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Prepare videos data (remove type field for backward compatibility)
+    // Prepare videos data - keep type field as it's used by the frontend
     const videosData = {
-      videos: videos.map(({ type, ...video }: any) => video),
+      videos: videos, // Keep all fields including type
     };
+
+    console.log(`Saving ${videos.length} videos to storage...`);
+    console.log('Sample video data:', videos[0] ? JSON.stringify(videos[0], null, 2) : 'No videos');
 
     // Save using storage utility (uses Blob when configured)
     try {
       await saveData('videos', videosData);
+      console.log('Videos saved successfully to storage');
     } catch (storageError: any) {
       // If it's a read-only filesystem error, provide helpful guidance
       if (storageError?.code === 'EROFS' || storageError?.message?.includes('read-only')) {
