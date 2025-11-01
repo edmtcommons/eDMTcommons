@@ -100,17 +100,32 @@ export function Header() {
                 </span>
               )}
             </div>
-            <button
-              onClick={handleDisconnect}
-              className="w-6 h-6 flex items-center justify-center text-text-button hover:opacity-80 transition-opacity"
-              aria-label="Sign out"
-            >
-              <img
-                src="/assets/sign-out-icon.svg"
-                alt="Sign out"
-                className="w-6 h-6"
-              />
-            </button>
+            {pathname === '/admin' ? (
+              <button
+                onClick={handleDisconnect}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors font-mono font-medium text-[14px] md:text-[16px] flex items-center gap-2"
+                aria-label="Disconnect wallet"
+              >
+                <img
+                  src="/assets/sign-out-icon.svg"
+                  alt="Disconnect"
+                  className="w-4 h-4 brightness-0 invert"
+                />
+                <span>Disconnect Wallet</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleDisconnect}
+                className="w-6 h-6 flex items-center justify-center text-text-button hover:opacity-80 transition-opacity"
+                aria-label="Sign out"
+              >
+                <img
+                  src="/assets/sign-out-icon.svg"
+                  alt="Sign out"
+                  className="w-6 h-6"
+                />
+              </button>
+            )}
           </div>
         )}
 
