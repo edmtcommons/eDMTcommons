@@ -5,7 +5,7 @@ import { Providers } from './providers';
 import configData from '@/config.json';
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Footer } from '@/components/Footer';
+import { ConditionalFooter } from '@/components/ConditionalFooter';
 import { AppWrapper } from '@/components/AppWrapper';
 
 export const metadata: Metadata = {
@@ -83,7 +83,7 @@ export default function RootLayout({
               <div className="flex-1">
                 {children}
               </div>
-              <Footer />
+              <ConditionalFooter />
             </div>
           </AppWrapper>
         </Providers>

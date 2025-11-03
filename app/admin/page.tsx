@@ -404,7 +404,7 @@ export default function AdminPage() {
       <main className="min-h-screen p-8" style={{ backgroundColor: '#123138' }}>
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Gallery Management</h1>
+            <h1 className="text-3xl font-bold text-white">Gallery Management</h1>
             <div className="flex items-center gap-4">
               {saving && (
                 <div className="flex items-center gap-2 text-blue-600">
