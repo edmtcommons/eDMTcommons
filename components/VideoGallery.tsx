@@ -199,9 +199,10 @@ export function VideoGallery({ videos }: VideoGalleryProps) {
                 {isYouTubeVideo(selectedVideo) ? (
                   <iframe
                     src={getYouTubeEmbedUrl(selectedVideo.url)}
-                    className="absolute left-[-1.66%] w-[104.53%] h-[104.53%] top-[-2.26%] pointer-events-none"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    className="absolute left-[-1.66%] w-[104.53%] h-[104.53%] top-[-2.26%]"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
+                    style={{ pointerEvents: 'auto' }}
                   />
                 ) : (
                   <video
