@@ -1,0 +1,33 @@
+{
+  "variant": "compact",
+  "subvariant": "split",
+  "subvariantOptions": {
+    "split": "swap"
+  },
+  "appearance": "light",
+  "theme": {
+    "colorSchemes": {
+      "light": {
+        "palette": {
+          "primary": { "main": "#5c314c" },
+          "secondary": { "main": "#5c314c" }
+        }
+      }
+    },
+    "palette": {
+      "primary": { "main": "#5c314c" },
+      "secondary": { "main": "#5c314c" }
+    },
+    "shape": {
+      "borderRadius": 18
+    },
+    "typography": {
+      "fontFamily": "Geist Mono, monospace"
+    },
+    "container": {
+      "boxShadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
+      "borderRadius": 18
+    }
+  }
+}
+
