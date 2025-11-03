@@ -1,0 +1,46 @@
+{
+  "videos": [
+    {
+      "id": "1",
+      "title": "eDMT Part 1",
+      "url": "https://www.youtube.com/watch?v=example1",
+      "thumbnail": "https://i.ytimg.com/vi/example1/hqdefault.jpg",
+      "addedDate": "2025-10-28",
+      "membersOnly": true
+    },
+    {
+      "id": "2",
+      "title": "Documentary: Tracing The Origins of modern DMT",
+      "url": "https://www.youtube.com/watch?v=example2",
+      "thumbnail": "https://i.ytimg.com/vi/example2/hqdefault.jpg",
+      "addedDate": "2025-10-28",
+      "membersOnly": false
+    },
+    {
+      "id": "3",
+      "title": "eDMT Courses: Introduction to Meditation",
+      "url": "https://www.youtube.com/watch?v=example3",
+      "thumbnail": "https://i.ytimg.com/vi/example3/hqdefault.jpg",
+      "addedDate": "2025-10-28",
+      "membersOnly": true
+    },
+    {
+      "id": "4",
+      "title": "Deep Listening Set: Qi Gong, Ambient | Grounded 016",
+      "url": "https://www.youtube.com/watch?v=example4",
+      "thumbnail": "https://i.ytimg.com/vi/example4/hqdefault.jpg",
+      "addedDate": "2025-10-28",
+      "membersOnly": true
+    },
+    {
+      "id": "5",
+      "title": "What is eDMT Part 2",
+      "url": "https://www.youtube.com/watch?v=example5",
+      "thumbnail": "https://i.ytimg.com/vi/example5/hqdefault.jpg",
+      "addedDate": "2025-10-28",
+      "membersOnly": false
+    }
+  ]
+}
+
+

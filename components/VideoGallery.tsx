@@ -43,7 +43,11 @@ export function VideoGallery({ videos }: VideoGalleryProps) {
 
   const getYouTubeEmbedUrl = (url: string) => {
     const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    if (videoId) {
+      // Include autoplay=1 and other parameters to make the video playable
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+    }
+    return url;
   };
 
   const isYouTubeVideo = (video: Video) => {
