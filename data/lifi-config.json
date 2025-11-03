@@ -1,33 +1,38 @@
 {
   "variant": "compact",
-  "subvariant": "split",
-  "subvariantOptions": {
-    "split": "swap"
-  },
+  "subvariant": "default",
   "appearance": "light",
   "theme": {
-    "colorSchemes": {
-      "light": {
-        "palette": {
-          "primary": { "main": "#5c314c" },
-          "secondary": { "main": "#5c314c" }
-        }
+    "palette": {
+      "primary": {
+        "main": "#5c314c"
+      },
+      "secondary": {
+        "main": "#F3B9D6"
+      },
+      "background": {
+        "default": "#E9E6D6",
+        "paper": "#E9E6D6"
+      },
+      "grey": {
+        "300": "#bfbcad"
+      },
+      "text": {
+        "primary": "#123138"
       }
     },
-    "palette": {
-      "primary": { "main": "#5c314c" },
-      "secondary": { "main": "#5c314c" }
-    },
-    "shape": {
-      "borderRadius": 18
-    },
     "typography": {
-      "fontFamily": "Geist Mono, monospace"
+      "fontFamily": "Roboto Mono, monospace"
     },
     "container": {
-      "boxShadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
-      "borderRadius": 18
+      "borderRadius": "24px",
+      "display": "flex",
+      "height": "100%",
+      "overflow": "hidden"
+    },
+    "shape": {
+      "borderRadiusSecondary": 8,
+      "borderRadius": 8
     }
   }
 }
-
