@@ -9,23 +9,23 @@ import { Footer } from '@/components/Footer';
 import { AppWrapper } from '@/components/AppWrapper';
 
 export const metadata: Metadata = {
-  title: `${configData.tokenName} Gallery`,
-  description: `${configData.tokenName} token holder exclusive media gallery`,
+  title: 'eDMT Commons',
+  description: 'eDMT token holder exclusive media gallery',
   keywords: ['eDMT', 'token', 'gallery', 'blockchain', 'Base', 'crypto', 'NFT', 'token-gated'],
   authors: [{ name: 'PsyDAO' }],
   creator: 'PsyDAO',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://edmt.bio'),
   openGraph: {
-    title: `${configData.tokenName} Gallery`,
-    description: `${configData.tokenName} token holder exclusive media gallery`,
+    title: 'eDMT Commons',
+    description: 'eDMT token holder exclusive media gallery',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://edmt.bio',
-    siteName: `${configData.tokenName} Gallery`,
+    siteName: 'eDMT Commons',
     images: [
       {
         url: '/assets/og.png',
         width: 1200,
         height: 630,
-        alt: `${configData.tokenName} Gallery`,
+        alt: 'eDMT Commons',
       },
     ],
     locale: 'en_US',
@@ -33,8 +33,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${configData.tokenName} Gallery`,
-    description: `${configData.tokenName} token holder exclusive media gallery`,
+    title: 'eDMT Commons',
+    description: 'eDMT token holder exclusive media gallery',
     images: ['/assets/og.png'],
     creator: '@psy_dao',
   },
