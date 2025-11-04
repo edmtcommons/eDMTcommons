@@ -10,14 +10,14 @@ import { AppWrapper } from '@/components/AppWrapper';
 
 export const metadata: Metadata = {
   title: 'eDMT Commons',
-  description: 'eDMT token holder exclusive media gallery',
+  description: 'Explore the eDMT Commons',
   keywords: ['eDMT', 'token', 'gallery', 'blockchain', 'Base', 'crypto', 'NFT', 'token-gated'],
   authors: [{ name: 'PsyDAO' }],
   creator: 'PsyDAO',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://edmt.bio'),
   openGraph: {
     title: 'eDMT Commons',
-    description: 'eDMT token holder exclusive media gallery',
+    description: 'Explore the eDMT Commons',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://edmt.bio',
     siteName: 'eDMT Commons',
     images: [
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'eDMT Commons',
-    description: 'eDMT token holder exclusive media gallery',
+    description: 'Explore the eDMT Commons',
     images: ['/assets/og.png'],
     creator: '@psy_dao',
   },
