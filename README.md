@@ -34,10 +34,20 @@ npm run dev
 
 ## Configuration
 
-- **RainbowKit Project ID**: `d06eb4d17620a3c3f24d2ca8c45d6b31`
-- **eDMT Token Contract**: Configured in `config.json`
-- **Minimum Balance**: Configurable in `config.json` (default: 1 eDMT token)
+### Environment Variables
+
+Create a `.env.local` file (see `.env.example` for template) with:
+
+- **NEXT_PUBLIC_SITE_URL**: Your site's public URL (e.g., `https://your-domain.vercel.app`)
+- **NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID**: WalletConnect Project ID from [WalletConnect Cloud](https://cloud.walletconnect.com)
+- **BLOB_READ_WRITE_TOKEN**: Vercel Blob Storage token (auto-set when creating Blob store in Vercel)
+
+### Application Configuration
+
+- **Token Contract**: Configured in `config.json`
+- **Minimum Balance**: Configurable in `config.json` (default: 1 token)
 - **LiFi Widget Config**: Configured in `data/lifi-config.json`
+- **Admin Whitelist**: Configured in `config.json` (wallet addresses that can access `/admin`)
 
 ### Customizing the Token Gate Threshold
 
@@ -113,6 +123,19 @@ Example configuration:
   - Note: Videos data is stored in Vercel Blob Storage, not in the filesystem
 - `/public` - Static assets
 - `config.json` - Token gate and token contract configuration (version-controlled)
+- `.env.example` - Template for environment variables
+- `DEPLOYMENT.md` - Complete deployment guide
+- `SETUP_CHECKLIST.md` - Setup checklist for new deployments
+
+## Files to Update for New Deployment
+
+When deploying to a new account:
+
+1. **`config.json`** - Update token address, admin whitelist, token name
+2. **`.env.local`** (create from `.env.example`) - Set environment variables
+3. **`app/layout.tsx`** - Update metadata (title, description) if needed
+4. **`/public/assets/`** - Replace logos and branding assets
+5. **`data/lifi-config.json`** - Customize widget appearance if needed
 
 ## Managing Content
 
@@ -130,11 +153,18 @@ Changes are saved automatically to Vercel Blob Storage:
 
 ## Deployment
 
-This project is configured for Vercel deployment:
+This project is configured for Vercel deployment. See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
 
-1. Push to GitHub
-2. Import the repository in Vercel
-3. Deploy
+### Quick Start
+
+1. **Fork/Clone** this repository to your GitHub account
+2. **Configure** `config.json` with your token and admin addresses
+3. **Set up** environment variables (see `.env.example`)
+4. **Deploy** to Vercel and connect your GitHub repository
+5. **Create** a Vercel Blob store for video storage
+6. **Test** the deployment
+
+For complete step-by-step instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## License
 

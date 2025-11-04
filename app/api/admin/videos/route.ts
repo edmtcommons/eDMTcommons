@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readData, saveData } from '@/lib/storage';
 
+// Mark as dynamic since we handle POST requests with body data
+export const dynamic = 'force-dynamic';
+
 async function verifyAdmin(walletAddress: string): Promise<boolean> {
   try {
     const configData = await readData('config');

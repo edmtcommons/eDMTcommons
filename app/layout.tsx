@@ -14,11 +14,11 @@ export const metadata: Metadata = {
   keywords: ['eDMT', 'token', 'gallery', 'blockchain', 'Base', 'crypto', 'NFT', 'token-gated'],
   authors: [{ name: 'PsyDAO' }],
   creator: 'PsyDAO',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://edmt.bio'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   openGraph: {
     title: 'eDMT Commons',
     description: 'Explore the eDMT Commons',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://edmt.bio',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
     siteName: 'eDMT Commons',
     images: [
       {

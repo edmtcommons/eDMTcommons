@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readData, uploadFileToStorage } from '@/lib/storage';
 
+// Mark as dynamic since we handle file uploads
+export const dynamic = 'force-dynamic';
+
 async function verifyAdmin(walletAddress: string): Promise<boolean> {
   try {
     const configData = await readData('config');
