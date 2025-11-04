@@ -40,13 +40,7 @@ function clearBlobCache(key?: string) {
 
 // Blob-based storage (primary storage method)
 async function saveToBlob(key: string, data: any): Promise<void> {
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-  if (!token) {
-    console.error('BLOB_READ_WRITE_TOKEN is not set. Current env vars:', {
-      hasToken: !!process.env.BLOB_READ_WRITE_TOKEN,
-      tokenLength: process.env.BLOB_READ_WRITE_TOKEN?.length,
-      isServerless: isServerlessEnvironment(),
-    });
+  if (!isBlobConfigured()) {
     throw new Error('Blob storage is not configured. Please set BLOB_READ_WRITE_TOKEN environment variable.');
   }
   
@@ -58,7 +52,6 @@ async function saveToBlob(key: string, data: any): Promise<void> {
     // Clear cache BEFORE saving to ensure subsequent reads get fresh data
     blobUrlCache.delete(key);
     
-    // @vercel/blob automatically reads BLOB_READ_WRITE_TOKEN from process.env
     const blob = await put(`data/${key}.json`, buffer, {
       access: 'public',
       contentType: 'application/json',
@@ -79,13 +72,7 @@ async function saveToBlob(key: string, data: any): Promise<void> {
 }
 
 async function readFromBlob(key: string, forceRefresh: boolean = false): Promise<any> {
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-  if (!token) {
-    console.error('BLOB_READ_WRITE_TOKEN is not set. Current env vars:', {
-      hasToken: !!process.env.BLOB_READ_WRITE_TOKEN,
-      tokenLength: process.env.BLOB_READ_WRITE_TOKEN?.length,
-      isServerless: isServerlessEnvironment(),
-    });
+  if (!isBlobConfigured()) {
     throw new Error('Blob storage is not configured. Please set BLOB_READ_WRITE_TOKEN environment variable.');
   }
   
@@ -104,7 +91,6 @@ async function readFromBlob(key: string, forceRefresh: boolean = false): Promise
     if (!blobUrl) {
       // Use list to find the blob by pathname
       // Try exact path first, then broader search
-      // @vercel/blob automatically reads BLOB_READ_WRITE_TOKEN from process.env
       let blobs = await list({ prefix: blobPath });
       let matchingBlob = blobs.blobs.find(b => b.pathname === blobPath);
       
@@ -265,14 +251,12 @@ export async function uploadFileToStorage(
   const filename = `${timestamp}-${sanitizedName}`;
 
   // Always try Blob first if configured
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-  if (token) {
+  if (isBlobConfigured()) {
     try {
       const { put } = await import('@vercel/blob');
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
       
-      // @vercel/blob automatically reads BLOB_READ_WRITE_TOKEN from process.env
       const blob = await put(`${type}/${filename}`, buffer, {
         access: 'public',
         contentType: file.type || (type === 'video' ? 'video/mp4' : 'image/png'),
