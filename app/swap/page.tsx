@@ -52,13 +52,17 @@ export default function SwapPage() {
     return null;
   }
 
-  const formattedBalance =
+  const numericBalance =
     balance && decimals
-      ? parseFloat(formatUnits(balance, decimals)).toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
-      : '0.00';
+      ? parseFloat(formatUnits(balance, decimals))
+      : 0;
+
+  const formattedBalance = numericBalance.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const hasSufficientBalance = numericBalance >= GALLERY_CONFIG.minimumTokenBalance;
 
   return (
     <main className="w-full min-h-screen overflow-hidden relative pb-24">
@@ -73,16 +77,30 @@ export default function SwapPage() {
           <div className="bg-cream rounded-3xl p-6 md:p-8 lg:p-10 shadow-2xl w-full md:w-[800px] min-h-[570px] flex flex-col gap-8 md:gap-10 lg:gap-12">
             <div className="flex flex-col gap-4 md:gap-5 lg:gap-6 items-start text-text-primary w-full">
               <h2 className="text-[32px] md:text-[40px] lg:text-[48px] font-serif leading-[1.1] w-full">
-                Welcome inside
+                {hasSufficientBalance ? 'Welcome inside' : 'Join in'}
               </h2>
               <div className="font-mono font-medium text-[16px] md:text-[17px] lg:text-[18px] leading-[1.3] w-full">
-                <p className="mb-0">
-                  Your {TOKEN_NAME} balance is sufficient to join the private {TOKEN_NAME} community
-                  channels and help us govern our research into this groundbreaking
-                  field.
-                </p>
-                <p className="mb-0">&nbsp;</p>
-                <p>Join us on this introspective journey using the links below.</p>
+                {hasSufficientBalance ? (
+                  <>
+                    <p className="mb-0">
+                      Your {TOKEN_NAME} balance is sufficient to join the private {TOKEN_NAME} community
+                      channels and help us govern our research into this groundbreaking
+                      field.
+                    </p>
+                    <p className="mb-0">&nbsp;</p>
+                    <p>Join us on this introspective journey using the links below.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="mb-0">
+                      Your {TOKEN_NAME} balance is not sufficcient to proceed.
+                    </p>
+                    <p className="mb-0">&nbsp;</p>
+                    <p>
+                      Please swap any other cryptocurrency in your wallet for {TOKEN_NAME}. You need at least {GALLERY_CONFIG.minimumTokenBalance} {TOKEN_NAME} to be able to access the private {TOKEN_NAME} community channels and help us govern our research into this groundbreaking field.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -107,22 +125,24 @@ export default function SwapPage() {
                 </div>
               </div>
 
-              {/* Telegram Button */}
-              <a
-                href="https://t.me/+yLQbGyOEvY9iODRh"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="basis-0 bg-button flex gap-3 md:gap-4 grow h-[56px] md:h-[72px] items-center justify-center min-w-0 p-3 md:p-4 rounded-lg"
-              >
-                <img
-                  src="/assets/telegram-icon.svg"
-                  alt=""
-                  className="w-[20px] h-[15px] md:w-[23.99px] md:h-[18.286px]"
-                />
-                <span className="font-mono font-semibold leading-normal text-text-button text-[16px] md:text-[18px] text-center whitespace-nowrap">
-                  Join Telegram
-                </span>
-              </a>
+              {/* Telegram Button - only show if balance is sufficient */}
+              {hasSufficientBalance && (
+                <a
+                  href="https://t.me/+yLQbGyOEvY9iODRh"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="basis-0 bg-button flex gap-3 md:gap-4 grow h-[56px] md:h-[72px] items-center justify-center min-w-0 p-3 md:p-4 rounded-lg"
+                >
+                  <img
+                    src="/assets/telegram-icon.svg"
+                    alt=""
+                    className="w-[20px] h-[15px] md:w-[23.99px] md:h-[18.286px]"
+                  />
+                  <span className="font-mono font-semibold leading-normal text-text-button text-[16px] md:text-[18px] text-center whitespace-nowrap">
+                    Join Telegram
+                  </span>
+                </a>
+              )}
             </div>
 
             {/* Explore Media Gallery Link */}
