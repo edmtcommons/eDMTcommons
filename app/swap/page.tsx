@@ -109,7 +109,7 @@ export default function SwapPage() {
 
               {/* Telegram Button */}
               <a
-                href="https://t.me/edmt"
+                href="https://t.me/+yLQbGyOEvY9iODRh"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="basis-0 bg-button flex gap-3 md:gap-4 grow h-[56px] md:h-[72px] items-center justify-center min-w-0 p-3 md:p-4 rounded-lg"
